@@ -1,0 +1,415 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String          @id @default(cuid())
+  email        String          @unique
+  passwordHash String
+  name         String
+  role         String          @default("STUDENT") // STUDENT, CONTENT_EDITOR, ADMIN, OWNER
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  profile      StudentProfile?
+  sessions     PracticeSession[]
+  mockAttempts TestAttempt[]
+  bookmarks    Bookmark[]
+  revisions    RevisionItem[]
+  missions     DailyMission[]
+  progress     TopicProgress[]
+  reports      ContentReport[]
+  orders       Order[]
+  entitlements Entitlement[]
+}
+
+model StudentProfile {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetExamId            String?
+  targetExam              Exam?    @relation(fields: [targetExamId], references: [id])
+  languagePreference      String   @default("NEPALI") // NEPALI, ENGLISH, BOTH
+  dailyStudyTargetMinutes Int      @default(45)
+  streakCount             Int      @default(0)
+  lastActiveNepalDate     String?  // e.g. "2081-06-02" or YYYY-MM-DD
+  xpPoints                Int      @default(0)
+  updatedAt               DateTime @updatedAt
+}
+
+model ExamCategory {
+  id    String @id @default(cuid())
+  name  String
+  code  String @unique // e.g. "LOK_SEWA", "BANKING", "TEACHER_SERVICE"
+  order Int    @default(0)
+  exams Exam[]
+}
+
+model Exam {
+  id          String         @id @default(cuid())
+  categoryId  String
+  category    ExamCategory   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  title       String
+  code        String         @unique // e.g. "LOK_SEWA_SECTION_OFFICER", "LOK_SEWA_NAYAB_SUBBA"
+  description String
+  isActive    Boolean        @default(true)
+  order       Int            @default(0)
+
+  syllabi          SyllabusVersion[]
+  mockTests        MockTest[]
+  questionExams    QuestionExam[]
+  practiceSessions PracticeSession[]
+  profiles         StudentProfile[]
+  plans            PackagePlan[]
+  entitlements     Entitlement[]
+}
+
+model SyllabusVersion {
+  id                String    @id @default(cuid())
+  examId            String
+  exam              Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  versionCode       String    // e.g. "2081_REVISED"
+  officialSourceUrl String?
+  verifiedAt        DateTime?
+  subjects          Subject[]
+}
+
+model Subject {
+  id                String          @id @default(cuid())
+  syllabusVersionId String
+  syllabusVersion   SyllabusVersion @relation(fields: [syllabusVersionId], references: [id], onDelete: Cascade)
+  name              String
+  code              String          // e.g. "GK", "PUBLIC_ADMIN", "IQ"
+  order             Int             @default(0)
+
+  topics           Topic[]
+  questions        Question[]
+  practiceSessions PracticeSession[]
+}
+
+model Topic {
+  id               String          @id @default(cuid())
+  subjectId        String
+  subject          Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  name             String
+  code             String          // e.g. "NEPAL_GEO", "NEPAL_CONSTITUTION"
+  estimatedMinutes Int             @default(30)
+  order            Int             @default(0)
+
+  questions        Question[]
+  notes            Note[]
+  progress         TopicProgress[]
+  practiceSessions PracticeSession[]
+}
+
+model Question {
+  id           String   @id @default(cuid())
+  externalId   String?  @unique
+  subjectId    String
+  subject      Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topicId      String
+  topic        Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  difficulty   String   @default("INTERMEDIATE") // BASIC, INTERMEDIATE, HARD
+  language     String   @default("NEPALI")       // NEPALI, ENGLISH, BOTH
+  questionType String   @default("MODEL")        // MODEL, PREVIOUS_YEAR, CURRENT_AFFAIRS
+  examYear     Int?
+  source       String?
+  accessLevel  String   @default("FREE")         // FREE, PREMIUM
+  status       String   @default("DRAFT")        // DRAFT, PUBLISHED, ARCHIVED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  versions        QuestionVersion[]
+  questionExams   QuestionExam[]
+  mockQuestions   MockTestQuestion[]
+  revisions       RevisionItem[]
+  reports         ContentReport[]
+  mockTestAnswers TestAttemptAnswer[]
+}
+
+model QuestionVersion {
+  id            String   @id @default(cuid())
+  questionId    String
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  versionNumber Int      @default(1)
+  questionText  String
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctOption String   // "A", "B", "C", "D"
+  explanation   String
+  authorId      String?
+  createdAt     DateTime @default(now())
+
+  attemptAnswers AttemptAnswer[]
+}
+
+model QuestionExam {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  examId     String
+  exam       Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, examId])
+}
+
+model PracticeSession {
+  id               String          @id @default(cuid())
+  userId           String
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId           String
+  exam             Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  subjectId        String
+  subject          Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topicId          String?
+  topic            Topic?          @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  difficultyFilter String          @default("ALL") // ALL, BASIC, INTERMEDIATE, HARD
+  totalQuestions   Int             @default(10)
+  status           String          @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED
+  startedAt        DateTime        @default(now())
+  completedAt      DateTime?
+
+  answers AttemptAnswer[]
+}
+
+model AttemptAnswer {
+  id                String          @id @default(cuid())
+  sessionId         String
+  session           PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionVersionId String
+  questionVersion   QuestionVersion @relation(fields: [questionVersionId], references: [id], onDelete: Cascade)
+  selectedOption    String          // "A", "B", "C", "D"
+  isCorrect         Boolean
+  timeSpentSeconds  Int             @default(0)
+  submittedAt       DateTime        @default(now())
+}
+
+model MockTest {
+  id                     String    @id @default(cuid())
+  examId                 String
+  exam                   Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  title                  String
+  description            String
+  durationMinutes        Int       @default(45)
+  totalQuestions         Int       @default(50)
+  marksPerCorrect        Float     @default(2.0)
+  negativePenaltyPercent Float     @default(20.0) // 20% means deduction of 0.4 on 2.0 marks
+  accessLevel            String    @default("FREE") // FREE, PREMIUM
+  status                 String    @default("PUBLISHED") // DRAFT, PUBLISHED, ARCHIVED
+  availableFrom          DateTime?
+  availableUntil         DateTime?
+  attemptLimit           Int       @default(3)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  questions MockTestQuestion[]
+  attempts  TestAttempt[]
+}
+
+model MockTestQuestion {
+  id         String   @id @default(cuid())
+  testId     String
+  mockTest   MockTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  order      Int      @default(0)
+
+  @@unique([testId, questionId])
+}
+
+model TestAttempt {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testId           String
+  mockTest         MockTest  @relation(fields: [testId], references: [id], onDelete: Cascade)
+  status           String    @default("IN_PROGRESS") // IN_PROGRESS, SUBMITTED, TIMED_OUT
+  deadline         DateTime
+  startedAt        DateTime  @default(now())
+  submittedAt      DateTime?
+  score            Float?
+  accuracyPercent  Float?
+  correctCount     Int       @default(0)
+  incorrectCount   Int       @default(0)
+  unansweredCount  Int       @default(0)
+
+  answers TestAttemptAnswer[]
+}
+
+model TestAttemptAnswer {
+  id                 String      @id @default(cuid())
+  attemptId          String
+  attempt            TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId         String
+  question           Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOption     String?     // null if skipped/unanswered
+  isMarkedForReview  Boolean     @default(false)
+  savedAt            DateTime    @default(now())
+
+  @@unique([attemptId, questionId])
+}
+
+model Note {
+  id           String    @id @default(cuid())
+  topicId      String
+  topic        Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  title        String
+  noteType     String    @default("ARTICLE") // "ARTICLE", "PDF"
+  contentHtml  String    @default("")
+  pdfUrl       String?
+  pdfFileName  String?
+  fileSizeBytes Int?
+  summary      String?
+  source       String?
+  verifiedAt   DateTime?
+  accessLevel  String    @default("FREE") // FREE, PREMIUM
+  status       String    @default("PUBLISHED") // DRAFT, PUBLISHED, ARCHIVED
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model TopicProgress {
+  id                 String    @id @default(cuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId            String
+  topic              Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  isMarkedCompleted  Boolean   @default(false)
+  questionsAttempted Int       @default(0)
+  questionsCorrect   Int       @default(0)
+  lastPracticedAt    DateTime?
+
+  @@unique([userId, topicId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemType  String   // "QUESTION", "NOTE"
+  itemId    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, itemType, itemId])
+}
+
+model RevisionItem {
+  id                      String    @id @default(cuid())
+  userId                  String
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId              String
+  question                Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  stage                   Int       @default(1) // 1: 1 day, 2: 3 days, 3: 7 days, 4: 14 days
+  incorrectCount          Int       @default(1)
+  lastAttemptedAt         DateTime  @default(now())
+  nextRevisionDueNepalDate String   // "YYYY-MM-DD"
+  isMastered              Boolean   @default(false)
+
+  @@unique([userId, questionId])
+}
+
+model DailyMission {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nepalDate    String   // "YYYY-MM-DD"
+  taskType     String   // "PRACTICE_COUNT", "TOPIC_NOTE", "MISTAKE_REVISION"
+  title        String
+  targetCount  Int      @default(10)
+  currentCount Int      @default(0)
+  isCompleted  Boolean  @default(false)
+  xpEarned     Int      @default(50)
+  actionUrl    String
+
+  @@unique([userId, nepalDate, taskType])
+}
+
+model ContentReport {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  reason     String   // INCORRECT_ANSWER, UNCLEAR_WORDING, DUPLICATE, OUTDATED, OTHER
+  details    String
+  status     String   @default("OPEN") // OPEN, UNDER_REVIEW, RESOLVED, DISMISSED
+  adminNotes String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ImportJob {
+  id          String      @id @default(cuid())
+  filename    String
+  totalRows   Int         @default(0)
+  validRows   Int         @default(0)
+  invalidRows Int         @default(0)
+  status      String      @default("PARSED") // PARSED, COMMITTED, CANCELLED
+  uploadedBy  String
+  createdAt   DateTime    @default(now())
+
+  rows ImportRow[]
+}
+
+model ImportRow {
+  id                 String    @id @default(cuid())
+  jobId              String
+  job                ImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  rowNumber          Int
+  rawJson            String    // JSON string of row
+  isValid            Boolean
+  validationErrors   String?   // JSON array or text error description
+  importedQuestionId String?
+}
+
+model PackagePlan {
+  id           String   @id @default(cuid())
+  title        String
+  durationDays Int      @default(30)
+  priceNpr     Int      @default(999)
+  coverageType String   @default("ALL_EXAMS") // ALL_EXAMS, SPECIFIC_EXAM
+  examId       String?
+  exam         Exam?    @relation(fields: [examId], references: [id], onDelete: SetNull)
+  featuresJson String   // JSON array of feature descriptions
+  isActive     Boolean  @default(true)
+
+  orders       Order[]
+  entitlements Entitlement[]
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId          String
+  plan            PackagePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  amountNpr       Int
+  paymentProvider String      @default("ESEWA") // ESEWA, KHALTI, MANUAL
+  transactionRef  String      @unique
+  status          String      @default("PENDING") // PENDING, SUCCESS, FAILED, CANCELLED
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model Entitlement {
+  id         String       @id @default(cuid())
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId     String?
+  plan       PackagePlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  examId     String?
+  exam       Exam?        @relation(fields: [examId], references: [id], onDelete: SetNull)
+  validFrom  DateTime     @default(now())
+  validUntil DateTime
+  isActive   Boolean      @default(true)
+}
