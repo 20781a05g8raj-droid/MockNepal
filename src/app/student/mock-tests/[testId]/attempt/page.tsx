@@ -3,6 +3,8 @@ import { getSessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import MockTestRunner from "./MockTestRunner";
 
+export const dynamic = "force-dynamic";
+
 interface MockTestAttemptPageProps {
   params: Promise<{ testId: string }>;
   searchParams: Promise<{ attemptId?: string }>;
@@ -18,7 +20,7 @@ export default async function MockTestAttemptPage({ params, searchParams }: Mock
     redirect(`/student/mock-tests/${testId}`);
   }
 
-  const attempt = await db.testAttempt.findUnique({
+  let attempt = await db.testAttempt.findUnique({
     where: { id: attemptId },
     include: {
       mockTest: {
@@ -38,6 +40,48 @@ export default async function MockTestAttemptPage({ params, searchParams }: Mock
       answers: true,
     },
   });
+
+  if (!attempt) {
+    const mockTest = await db.mockTest.findUnique({
+      where: { id: testId },
+    });
+
+    if (mockTest) {
+      try {
+        attempt = await db.testAttempt.upsert({
+          where: { id: attemptId },
+          update: {},
+          create: {
+            id: attemptId,
+            userId: user.id,
+            testId: mockTest.id,
+            status: "IN_PROGRESS",
+            deadline: new Date(Date.now() + mockTest.durationMinutes * 60 * 1000),
+            startedAt: new Date(),
+          },
+          include: {
+            mockTest: {
+              include: {
+                questions: {
+                  include: {
+                    question: {
+                      include: {
+                        versions: { orderBy: { versionNumber: "desc" }, take: 1 },
+                      },
+                    },
+                  },
+                  orderBy: { order: "asc" },
+                },
+              },
+            },
+            answers: true,
+          },
+        });
+      } catch (e) {
+        console.warn("Could not upsert mock test attempt:", e);
+      }
+    }
+  }
 
   if (!attempt || attempt.userId !== user.id) {
     notFound();

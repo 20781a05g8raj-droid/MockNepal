@@ -11,19 +11,35 @@ function getPrismaClient(): PrismaClient {
   // Fallback for serverless environments (e.g. Vercel) where root filesystem is read-only
   if (process.env.VERCEL) {
     const tmpDbPath = path.join("/tmp", "dev.db");
-    const sourceDbPath = path.join(process.cwd(), "prisma", "dev.db");
+    
+    // Check multiple candidate locations where Next.js / NFT may place prisma/dev.db
+    const candidatePaths = [
+      path.join(process.cwd(), "prisma", "dev.db"),
+      path.join(__dirname, "..", "..", "..", "prisma", "dev.db"),
+      path.join(__dirname, "..", "..", "prisma", "dev.db"),
+      path.join(__dirname, "..", "prisma", "dev.db"),
+      path.join("/var/task", "prisma", "dev.db"),
+    ];
 
     try {
-      if (!fs.existsSync(tmpDbPath) && fs.existsSync(sourceDbPath)) {
-        fs.copyFileSync(sourceDbPath, tmpDbPath);
+      if (!fs.existsSync(tmpDbPath)) {
+        for (const candidate of candidatePaths) {
+          if (fs.existsSync(candidate)) {
+            fs.copyFileSync(candidate, tmpDbPath);
+            break;
+          }
+        }
       }
-      return new PrismaClient({
-        datasources: {
-          db: {
-            url: `file:${tmpDbPath}`,
+
+      if (fs.existsSync(tmpDbPath)) {
+        return new PrismaClient({
+          datasources: {
+            db: {
+              url: `file:${tmpDbPath}`,
+            },
           },
-        },
-      });
+        });
+      }
     } catch (e) {
       console.error("Error configuring SQLite in /tmp for Vercel:", e);
     }

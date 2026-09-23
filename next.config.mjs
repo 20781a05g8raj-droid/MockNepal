@@ -2,8 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   outputFileTracingIncludes: {
-    "/*": ["./prisma/dev.db"],
-    "/api/*": ["./prisma/dev.db"],
+    "/**": ["./prisma/dev.db"],
   },
 };
 
