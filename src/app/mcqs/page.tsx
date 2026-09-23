@@ -24,7 +24,11 @@ import {
   GraduationCap,
   ShieldCheck,
   Zap,
-  FolderOpen
+  FolderOpen,
+  HelpCircle,
+  Scale,
+  CheckSquare,
+  AlertCircle
 } from "lucide-react";
 
 interface McqsPageProps {
@@ -221,7 +225,6 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
       ? selectedSubject.topics.find((t: any) => t.id === currentTopicId)
       : null;
 
-    // Format questions and apply Free vs Pro lock
     // Free limit: 5 questions free per subject for free students
     const freeQuestionsLimit = 5;
     const questions: ExamvedaQuestionData[] = questionsRaw
@@ -229,9 +232,6 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
       .map((q, idx) => {
         const v = q.versions[0];
         const globalIndex = (currentPage - 1) * pageSize + idx;
-
-        // Determine if locked
-        // Locked if not Pro AND (question is marked PREMIUM OR student exceeded 5 free preview questions)
         const isLockedForUser = !isPro && (q.accessLevel === "PREMIUM" || globalIndex >= freeQuestionsLimit);
 
         return {
@@ -263,136 +263,172 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
         <PublicNav user={user} />
 
         <main style={{ backgroundColor: "#F8FAFC", flexGrow: 1 }}>
-          {/* Breadcrumb & Section Header */}
+          {/* ================= 1. MODERN SLEEK SUBJECT HERO BANNER ================= */}
           <div
             style={{
-              backgroundColor: "#FFFFFF",
-              borderBottom: "1px solid #E2E8F0",
-              padding: "1.25rem 1.5rem",
+              background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #0369A1 100%)",
+              color: "#FFFFFF",
+              padding: "2rem 1.5rem 1.75rem",
+              boxShadow: "0 10px 25px -5px rgba(2, 132, 199, 0.2)",
             }}
           >
-            <div className="container">
-              {/* Breadcrumb */}
-              <div className="flex items-center gap-2 text-xs text-muted mb-2 flex-wrap">
-                <Link href="/" className="hover:text-primary">
+            <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+              {/* Breadcrumb Navigation */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontSize: "0.82rem",
+                  color: "#94A3B8",
+                  marginBottom: "0.75rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                <Link href="/" style={{ color: "#BAE6FD", textDecoration: "none" }}>
                   गृहपृष्ठ (Home)
                 </Link>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                <Link href="/mcqs" className="hover:text-primary">
+                <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                <Link href="/mcqs" style={{ color: "#BAE6FD", textDecoration: "none" }}>
                   विषय सूची (All Subjects)
                 </Link>
                 {activeExam && (
                   <>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="text-slate-600 font-medium">
-                      {activeExam.title}
-                    </span>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                    <span style={{ color: "#E2E8F0" }}>{activeExam.title}</span>
                   </>
                 )}
-                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                <span className="font-bold text-sky-700">
-                  {selectedSubject.name}
-                </span>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                <span style={{ color: "#FFFFFF", fontWeight: 700 }}>{selectedSubject.name}</span>
               </div>
 
-              {/* Title & Question Count Banner */}
-              <div className="flex justify-between items-start flex-wrap gap-4">
+              {/* Title & Status Row */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  flexWrap: "wrap",
+                  gap: "1.25rem",
+                }}
+              >
                 <div>
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
                     <span
                       style={{
-                        backgroundColor: "#E0F2FE",
-                        color: "#0369A1",
+                        backgroundColor: "rgba(255, 255, 255, 0.15)",
+                        backdropFilter: "blur(6px)",
+                        color: "#E0F2FE",
                         fontSize: "0.75rem",
                         fontWeight: 700,
-                        padding: "0.2rem 0.6rem",
+                        padding: "0.25rem 0.65rem",
+                        borderRadius: "999px",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                      }}
+                    >
+                      {activeExam?.title || "आधिकारिक परीक्षा"}
+                    </span>
+                    <span
+                      style={{
+                        backgroundColor: "#0284C7",
+                        color: "#FFFFFF",
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        padding: "0.2rem 0.55rem",
                         borderRadius: "4px",
                       }}
                     >
-                      विषय: {selectedSubject.code}
+                      Code: {selectedSubject.code}
                     </span>
-                    {activeExam && (
-                      <span
-                        style={{
-                          backgroundColor: "#F1F5F9",
-                          color: "#475569",
-                          fontSize: "0.75rem",
-                          fontWeight: 600,
-                          padding: "0.2rem 0.6rem",
-                          borderRadius: "4px",
-                        }}
-                      >
-                        {activeExam.title}
-                      </span>
-                    )}
                   </div>
 
-                  <h1 style={{ fontSize: "1.65rem", fontWeight: 800, color: "#0F172A", margin: "0.25rem 0" }}>
-                    {selectedSubject.name} वस्तुगत प्रश्न संग्रह
+                  <h1 style={{ fontSize: "2rem", fontWeight: 800, margin: "0 0 0.4rem 0", lineHeight: 1.25 }}>
+                    {selectedSubject.name}
                   </h1>
 
-                  <p style={{ fontSize: "0.9rem", color: "#64748B", margin: 0 }}>
-                    {activeTopic
-                      ? `अध्याय: ${activeTopic.name} (कुल ${totalQuestionsCount} प्रश्नहरू)`
-                      : `यस विषयमा कुल ${totalQuestionsCount} वटा आधिकारिक प्रश्नहरू उपलब्ध छन्।`}
-                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", fontSize: "0.88rem", color: "#BAE6FD" }}>
+                    <span>
+                      📊 कुल उपलब्ध: <strong style={{ color: "#FFFFFF" }}>{totalQuestionsCount} प्रश्नहरू</strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      ⚖️ नेगेटिभ मार्किङ: <strong style={{ color: "#FFFFFF" }}>-२०% (-०.४ अंक)</strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      🏛️ आधिकारिक पाठ्यक्रम: <strong style={{ color: "#FFFFFF" }}>नेपाल सरकार / काउन्सिल</strong>
+                    </span>
+                  </div>
                 </div>
 
-                {/* Free vs Pro Access Status Indicator */}
-                <div style={{ textAlign: "right" }}>
+                {/* Right: Free vs Pro Status */}
+                <div>
                   {isPro ? (
                     <div
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: "0.4rem",
+                        gap: "0.45rem",
                         backgroundColor: "#FEF3C7",
                         color: "#92400E",
-                        padding: "0.4rem 0.85rem",
+                        padding: "0.5rem 1rem",
                         borderRadius: "999px",
-                        fontWeight: 700,
-                        fontSize: "0.82rem",
-                        border: "1px solid #FDE68A",
+                        fontWeight: 800,
+                        fontSize: "0.85rem",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                       }}
                     >
                       <Sparkles className="w-4 h-4 text-amber-600" />
-                      <span>PRO UNLOCKED (सबै प्रश्न खुला)</span>
+                      <span>PRO UNLOCKED (सबै प्रश्नहरू खुला)</span>
                     </div>
                   ) : (
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.3rem" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-end",
+                        gap: "0.4rem",
+                      }}
+                    >
                       <span
                         style={{
                           display: "inline-flex",
                           alignItems: "center",
                           gap: "0.35rem",
-                          backgroundColor: "#F1F5F9",
-                          color: "#334155",
-                          padding: "0.25rem 0.65rem",
+                          backgroundColor: "rgba(255, 255, 255, 0.15)",
+                          color: "#FFFFFF",
+                          padding: "0.35rem 0.8rem",
                           borderRadius: "999px",
                           fontWeight: 700,
-                          fontSize: "0.78rem",
+                          fontSize: "0.8rem",
+                          border: "1px solid rgba(255, 255, 255, 0.25)",
                         }}
                       >
-                        <Lock className="w-3.5 h-3.5 text-slate-500" />
+                        <Lock className="w-3.5 h-3.5 text-sky-200" />
                         <span>निशुल्क पूर्वावलोकन (५ प्रश्न खुला)</span>
                       </span>
+
                       <Link
                         href="/pricing"
                         style={{
-                          fontSize: "0.8rem",
-                          fontWeight: 700,
-                          color: "#0284C7",
+                          backgroundColor: "#F59E0B",
+                          color: "#0F172A",
+                          padding: "0.45rem 1rem",
+                          borderRadius: "6px",
+                          fontWeight: 800,
+                          fontSize: "0.82rem",
                           textDecoration: "none",
+                          boxShadow: "0 2px 8px rgba(245, 158, 11, 0.3)",
                         }}
                       >
-                        सबै {totalQuestionsCount} प्रश्न अनलक गर्नुहोस् →
+                        सबै {totalQuestionsCount} प्रश्न अनलक गर्नुहोस् (रु. ४९९) →
                       </Link>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Sub-Topics Pills for this Subject */}
+              {/* Sub-Topics Segmented Tab Bar */}
               {selectedSubject.topics.length > 0 && (
                 <div
                   style={{
@@ -400,27 +436,29 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                     alignItems: "center",
                     gap: "0.5rem",
                     overflowX: "auto",
-                    paddingTop: "1rem",
-                    marginTop: "0.75rem",
-                    borderTop: "1px solid #F1F5F9",
+                    paddingTop: "1.25rem",
+                    marginTop: "1.25rem",
+                    borderTop: "1px solid rgba(255, 255, 255, 0.15)",
+                    scrollbarWidth: "none",
                   }}
                 >
-                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#64748B", whiteSpace: "nowrap" }}>
+                  <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#BAE6FD", whiteSpace: "nowrap" }}>
                     अध्यायहरू:
                   </span>
 
                   <Link
                     href={`/mcqs?subjectId=${selectedSubject.id}`}
                     style={{
-                      fontSize: "0.78rem",
-                      padding: "0.25rem 0.75rem",
+                      fontSize: "0.8rem",
+                      padding: "0.35rem 0.85rem",
                       borderRadius: "999px",
-                      fontWeight: 600,
+                      fontWeight: 700,
                       whiteSpace: "nowrap",
                       textDecoration: "none",
-                      backgroundColor: !currentTopicId ? "#0284C7" : "#FFFFFF",
-                      color: !currentTopicId ? "#FFFFFF" : "#475569",
-                      border: `1px solid ${!currentTopicId ? "#0284C7" : "#CBD5E1"}`,
+                      backgroundColor: !currentTopicId ? "#FFFFFF" : "rgba(255, 255, 255, 0.12)",
+                      color: !currentTopicId ? "#0369A1" : "#E0F2FE",
+                      border: "1px solid rgba(255, 255, 255, 0.2)",
+                      transition: "all 150ms ease",
                     }}
                   >
                     सबै अध्यायहरू ({selectedSubject._count.questions})
@@ -433,15 +471,16 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                         key={top.id}
                         href={`/mcqs?subjectId=${selectedSubject.id}&topic=${top.id}`}
                         style={{
-                          fontSize: "0.78rem",
-                          padding: "0.25rem 0.75rem",
+                          fontSize: "0.8rem",
+                          padding: "0.35rem 0.85rem",
                           borderRadius: "999px",
-                          fontWeight: 600,
+                          fontWeight: 700,
                           whiteSpace: "nowrap",
                           textDecoration: "none",
-                          backgroundColor: isTopicActive ? "#0284C7" : "#FFFFFF",
-                          color: isTopicActive ? "#FFFFFF" : "#475569",
-                          border: `1px solid ${isTopicActive ? "#0284C7" : "#CBD5E1"}`,
+                          backgroundColor: isTopicActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.12)",
+                          color: isTopicActive ? "#0369A1" : "#E0F2FE",
+                          border: "1px solid rgba(255, 255, 255, 0.2)",
+                          transition: "all 150ms ease",
                         }}
                       >
                         {top.name} ({top._count.questions})
@@ -453,146 +492,103 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
             </div>
           </div>
 
-          {/* Subject Content Layout */}
-          <div className="container examveda-main-layout" style={{ marginTop: "1.5rem" }}>
-            {/* Left Column: Syllabus Navigator */}
-            <aside className="examveda-sidebar-left">
-              {/* Back to All Subjects */}
-              <div style={{ marginBottom: "1rem" }}>
-                <Link
-                  href="/mcqs"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    backgroundColor: "#FFFFFF",
-                    border: "1px solid #CBD5E1",
-                    padding: "0.6rem 1rem",
-                    borderRadius: "8px",
-                    color: "#1E293B",
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
-                    textDecoration: "none",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-                  }}
-                >
-                  <Compass className="w-4 h-4 text-sky-600" />
-                  <span>← अन्य विषय छान्नुहोस्</span>
-                </Link>
-              </div>
-
-              {/* Sister Subjects in the Same Exam */}
-              <div className="examveda-sidebar-card">
-                <div className="examveda-sidebar-title">
-                  <span className="flex items-center gap-1.5">
-                    <BookOpen className="w-4 h-4 text-sky-600" />
-                    {activeExam?.title || "यस परीक्षाका अन्य विषयहरू"}
-                  </span>
+          {/* ================= 2. PROFESSIONAL 2-COLUMN MAIN LAYOUT ================= */}
+          <div
+            style={{
+              maxWidth: "1280px",
+              margin: "2rem auto 4rem",
+              padding: "0 1.25rem",
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr) 340px",
+              gap: "2rem",
+              alignItems: "start",
+            }}
+          >
+            {/* ================= LEFT / MAIN: QUESTIONS FEED ================= */}
+            <section style={{ minWidth: 0 }}>
+              {/* Question Stream Toolbar */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "0.75rem",
+                  backgroundColor: "#FFFFFF",
+                  padding: "0.85rem 1.25rem",
+                  borderRadius: "12px",
+                  border: "1px solid #E2E8F0",
+                  marginBottom: "1.5rem",
+                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+                }}
+              >
+                <div style={{ fontSize: "0.9rem", color: "#334155", fontWeight: 600 }}>
+                  {activeTopic ? (
+                    <span>
+                      अध्याय: <strong style={{ color: "#0F172A" }}>{activeTopic.name}</strong> ({totalQuestionsCount} प्रश्न)
+                    </span>
+                  ) : (
+                    <span>
+                      देखाउँदै: <strong style={{ color: "#0F172A" }}>{questions.length} / {totalQuestionsCount} प्रश्नहरू</strong>
+                    </span>
+                  )}
                 </div>
 
-                <ul className="examveda-topic-list">
-                  {sisterSubjects.map((sub: any) => {
-                    const isCurrent = sub.id === selectedSubject.id;
+                {/* Difficulty Filters */}
+                <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#64748B", marginRight: "0.25rem" }}>
+                    तह:
+                  </span>
+                  {[
+                    { label: "सबै", val: "" },
+                    { label: "Basic", val: "BASIC" },
+                    { label: "Intermediate", val: "INTERMEDIATE" },
+                    { label: "Hard", val: "HARD" },
+                  ].map((item) => {
+                    const isActive = (difficultyFilter || "") === item.val;
                     return (
-                      <li key={sub.id} className="examveda-topic-item">
-                        <Link
-                          href={`/mcqs?subjectId=${sub.id}`}
-                          className={`examveda-topic-link ${isCurrent ? "active" : ""}`}
-                        >
-                          <span style={{ fontSize: "0.82rem" }}>• {sub.name}</span>
-                          <span className="examveda-count-pill">{sub._count?.questions || 0}</span>
-                        </Link>
-                      </li>
+                      <Link
+                        key={item.val}
+                        href={`/mcqs?${new URLSearchParams({
+                          subjectId: selectedSubject.id,
+                          ...(currentTopicId ? { topic: currentTopicId } : {}),
+                          ...(item.val ? { difficulty: item.val } : {}),
+                        }).toString()}`}
+                        style={{
+                          fontSize: "0.76rem",
+                          padding: "0.25rem 0.6rem",
+                          borderRadius: "6px",
+                          fontWeight: 700,
+                          textDecoration: "none",
+                          backgroundColor: isActive ? "#0284C7" : "#F1F5F9",
+                          color: isActive ? "#FFFFFF" : "#475569",
+                          border: `1px solid ${isActive ? "#0284C7" : "#CBD5E1"}`,
+                        }}
+                      >
+                        {item.label}
+                      </Link>
                     );
                   })}
-                </ul>
-              </div>
-
-              {/* Study Notes & PDFs for this subject */}
-              <div className="examveda-sidebar-card">
-                <div className="examveda-sidebar-title">
-                  <span className="flex items-center gap-1.5">
-                    <FileText className="w-4 h-4 text-emerald-600" />
-                    अध्ययन नोट तथा PDF
-                  </span>
-                </div>
-                <div style={{ padding: "0.85rem" }}>
-                  <p style={{ fontSize: "0.82rem", color: "#64748B", lineHeight: 1.5, margin: 0 }}>
-                    {selectedSubject.name} का आधिकारिक नोट, सारांश तथा पाठ्यक्रम PDF हरू डाउनलोड गर्नुहोस्।
-                  </p>
-                  <Link
-                    href={`/notes?subjectId=${selectedSubject.id}`}
-                    className="btn btn-secondary btn-sm btn-full mt-3"
-                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem" }}
-                  >
-                    <FileText className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>यस विषयका नोटहरू हेर्नुहोस्</span>
-                  </Link>
                 </div>
               </div>
-            </aside>
 
-            {/* Center Column: Questions Feed strictly for this Subject */}
-            <section className="examveda-center-col" style={{ minWidth: 0 }}>
-              {/* Free User Upgrade Banner */}
-              {!isPro && totalQuestionsCount > freeQuestionsLimit && (
-                <div
-                  style={{
-                    backgroundColor: "#EFF6FF",
-                    border: "1.5px solid #BFDBFE",
-                    borderRadius: "10px",
-                    padding: "1rem 1.25rem",
-                    marginBottom: "1.25rem",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: "0.75rem",
-                  }}
-                >
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontWeight: 700, color: "#1E40AF", fontSize: "0.92rem" }}>
-                      <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
-                      <span>Mock Nepal PRO अपग्रेड</span>
-                    </div>
-                    <p style={{ fontSize: "0.82rem", color: "#3B82F6", margin: "0.2rem 0 0" }}>
-                      तपाईं निशुल्क खातामा हुनुहुन्छ। पहिलो {freeQuestionsLimit} प्रश्न खुला छन्। बाँकी प्रश्नहरू र विस्तृत व्याख्याका लागि Pro लिनुहोस्।
-                    </p>
-                  </div>
-
-                  <Link
-                    href="/pricing"
-                    style={{
-                      backgroundColor: "#0284C7",
-                      color: "#FFFFFF",
-                      padding: "0.45rem 1rem",
-                      borderRadius: "6px",
-                      fontSize: "0.85rem",
-                      fontWeight: 700,
-                      textDecoration: "none",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "0.35rem",
-                      boxShadow: "0 2px 4px rgba(2, 132, 199, 0.3)",
-                    }}
-                  >
-                    <span>रु. ४९९ मा सबै अनलक</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              )}
-
+              {/* Questions Stream */}
               {questions.length === 0 ? (
                 <div
-                  className="card text-center"
-                  style={{ padding: "3rem 1.5rem", backgroundColor: "#FFFFFF", borderRadius: "10px" }}
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: "14px",
+                    padding: "3.5rem 1.5rem",
+                    textAlign: "center",
+                  }}
                 >
                   <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                   <h3 style={{ fontSize: "1.2rem", color: "#1E293B", fontWeight: 700 }}>
                     यस विषयमा हाल कुनै प्रश्न भेटिएन
                   </h3>
                   <p style={{ color: "#64748B", marginTop: "0.5rem", fontSize: "0.9rem" }}>
-                    छानिएको अध्याय वा फिल्टरका लागि प्रश्न उपलब्ध छैन। कृपया अन्य अध्याय छान्नुहोस्।
+                    छानिएको अध्याय वा तहका लागि प्रश्नहरू उपलब्ध छैन। कृपया अन्य अध्याय छान्नुहोस्।
                   </p>
                   <div className="mt-4">
                     <Link
@@ -616,7 +612,7 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                     );
                   })}
 
-                  {/* Pagination */}
+                  {/* Clean Pagination */}
                   {totalPages > 1 && (
                     <div
                       style={{
@@ -624,7 +620,7 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                         justifyContent: "center",
                         alignItems: "center",
                         gap: "0.4rem",
-                        marginTop: "2rem",
+                        marginTop: "2.5rem",
                         flexWrap: "wrap",
                       }}
                     >
@@ -636,7 +632,16 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                             ...(difficultyFilter ? { difficulty: difficultyFilter } : {}),
                             page: String(currentPage - 1),
                           }).toString()}`}
-                          className="btn btn-secondary btn-sm"
+                          style={{
+                            padding: "0.5rem 1rem",
+                            borderRadius: "8px",
+                            backgroundColor: "#FFFFFF",
+                            border: "1px solid #CBD5E1",
+                            color: "#1E293B",
+                            fontSize: "0.85rem",
+                            fontWeight: 700,
+                            textDecoration: "none",
+                          }}
                         >
                           ‹ अघिल्लो (Prev)
                         </Link>
@@ -655,18 +660,19 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                               page: String(pageNum),
                             }).toString()}`}
                             style={{
-                              minWidth: "36px",
-                              height: "36px",
+                              minWidth: "38px",
+                              height: "38px",
                               display: "inline-flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              borderRadius: "6px",
-                              fontSize: "0.85rem",
-                              fontWeight: 700,
+                              borderRadius: "8px",
+                              fontSize: "0.88rem",
+                              fontWeight: 800,
                               textDecoration: "none",
                               backgroundColor: isCurrent ? "#0284C7" : "#FFFFFF",
                               color: isCurrent ? "#FFFFFF" : "#1E293B",
                               border: `1px solid ${isCurrent ? "#0284C7" : "#CBD5E1"}`,
+                              boxShadow: isCurrent ? "0 2px 6px rgba(2, 132, 199, 0.3)" : "none",
                             }}
                           >
                             {pageNum}
@@ -682,7 +688,16 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                             ...(difficultyFilter ? { difficulty: difficultyFilter } : {}),
                             page: String(currentPage + 1),
                           }).toString()}`}
-                          className="btn btn-secondary btn-sm"
+                          style={{
+                            padding: "0.5rem 1rem",
+                            borderRadius: "8px",
+                            backgroundColor: "#FFFFFF",
+                            border: "1px solid #CBD5E1",
+                            color: "#1E293B",
+                            fontSize: "0.85rem",
+                            fontWeight: 700,
+                            textDecoration: "none",
+                          }}
                         >
                           पछिल्लो (Next) ›
                         </Link>
@@ -693,91 +708,177 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
               )}
             </section>
 
-            {/* Right Column: Tips & Fast Actions */}
-            <aside className="examveda-sidebar-right">
-              {/* Quick Marking Card */}
+            {/* ================= RIGHT COMPANION SIDEBAR ================= */}
+            <aside style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              {/* Card 1: Official Marking Scheme */}
               <div
                 style={{
                   backgroundColor: "#FFFFFF",
                   border: "1px solid #E2E8F0",
-                  borderRadius: "10px",
+                  borderRadius: "14px",
                   padding: "1.25rem",
-                  marginBottom: "1rem",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
                 }}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0F172A" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", marginBottom: "0.75rem" }}>
+                  <Scale className="w-4 h-4 text-emerald-600" />
+                  <span style={{ fontWeight: 800, fontSize: "0.95rem", color: "#0F172A" }}>
                     परीक्षा मूल्यांकन नियम
                   </span>
                 </div>
-                <p style={{ fontSize: "0.8rem", color: "#64748B", lineHeight: 1.6, margin: 0 }}>
-                  प्रत्येक गलत उत्तर बापत २०% (-०.४ अंक) कट्टा गरिन्छ। सही उत्तरको मात्र अंक प्राप्त हुन्छ।
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.82rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "0.35rem 0.6rem", backgroundColor: "#F0FDF4", borderRadius: "6px", color: "#166534" }}>
+                    <span>✓ प्रत्येक सही उत्तर:</span>
+                    <strong>+१.० अंक</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "0.35rem 0.6rem", backgroundColor: "#FEF2F2", borderRadius: "6px", color: "#991B1B" }}>
+                    <span>✗ प्रत्येक गलत उत्तर:</span>
+                    <strong>-०.२ अंक (-२०%)</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "0.35rem 0.6rem", backgroundColor: "#F8FAFC", borderRadius: "6px", color: "#475569" }}>
+                    <span>○ खाली/अनुत्तरित:</span>
+                    <strong>०.० अंक</strong>
+                  </div>
+                </div>
+
+                <p style={{ fontSize: "0.75rem", color: "#94A3B8", marginTop: "0.75rem", lineHeight: 1.5, margin: "0.75rem 0 0" }}>
+                  लोक सेवा, शिक्षक सेवा तथा काउन्सिल परीक्षामा नेगेटिभ मार्किङ अनिवार्य लागू हुन्छ।
                 </p>
               </div>
 
-              {/* Study Notes & PDFs Card */}
+              {/* Card 2: Study Notes & Syllabus PDF */}
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #0284C7 0%, #0369A1 100%)",
+                  color: "#FFFFFF",
+                  borderRadius: "14px",
+                  padding: "1.25rem",
+                  boxShadow: "0 4px 12px rgba(2, 132, 199, 0.25)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", marginBottom: "0.4rem" }}>
+                  <FileText className="w-4 h-4 text-sky-200" />
+                  <span style={{ fontWeight: 800, fontSize: "0.95rem" }}>
+                    अध्ययन नोट तथा PDF
+                  </span>
+                </div>
+
+                <p style={{ fontSize: "0.82rem", color: "#E0F2FE", lineHeight: 1.5, marginBottom: "1rem" }}>
+                  {selectedSubject.name} का आधिकारिक अध्ययन नोट, सुत्र तथा पाठ्यक्रम PDF हरू डाउनलोड गर्नुहोस्।
+                </p>
+
+                <Link
+                  href={`/notes?subjectId=${selectedSubject.id}`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.4rem",
+                    backgroundColor: "#FFFFFF",
+                    color: "#0369A1",
+                    padding: "0.6rem 1rem",
+                    borderRadius: "8px",
+                    fontWeight: 800,
+                    fontSize: "0.85rem",
+                    textDecoration: "none",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>विषयगत नोटहरू हेर्नुहोस् (PDF)</span>
+                </Link>
+              </div>
+
+              {/* Card 3: Other Subjects in this Exam */}
+              {sisterSubjects.length > 1 && (
+                <div
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: "14px",
+                    padding: "1.25rem",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", marginBottom: "0.75rem" }}>
+                    <BookOpen className="w-4 h-4 text-sky-600" />
+                    <span style={{ fontWeight: 800, fontSize: "0.95rem", color: "#0F172A" }}>
+                      यस परीक्षाका अन्य विषयहरू
+                    </span>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                    {sisterSubjects.map((sub: any) => {
+                      const isCurrent = sub.id === selectedSubject.id;
+                      return (
+                        <Link
+                          key={sub.id}
+                          href={`/mcqs?subjectId=${sub.id}`}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "0.55rem 0.75rem",
+                            borderRadius: "8px",
+                            fontSize: "0.82rem",
+                            textDecoration: "none",
+                            backgroundColor: isCurrent ? "#F0F9FF" : "transparent",
+                            color: isCurrent ? "#0284C7" : "#334155",
+                            fontWeight: isCurrent ? 800 : 500,
+                            border: isCurrent ? "1px solid #BAE6FD" : "1px solid transparent",
+                            transition: "all 150ms ease",
+                          }}
+                        >
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            • {sub.name}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "0.72rem",
+                              backgroundColor: isCurrent ? "#0284C7" : "#F1F5F9",
+                              color: isCurrent ? "#FFFFFF" : "#64748B",
+                              padding: "0.15rem 0.45rem",
+                              borderRadius: "999px",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {sub._count?.questions || 0}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Card 4: Switch to Entire Subject Directory */}
               <div
                 style={{
                   backgroundColor: "#FFFFFF",
                   border: "1px solid #E2E8F0",
-                  borderRadius: "10px",
-                  padding: "1.25rem",
-                  marginBottom: "1rem",
+                  borderRadius: "14px",
+                  padding: "1rem 1.25rem",
+                  textAlign: "center",
                 }}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText className="w-4 h-4 text-sky-600" />
-                  <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0F172A" }}>
-                    अध्ययन नोट तथा PDF
-                  </span>
-                </div>
-                <p style={{ fontSize: "0.8rem", color: "#64748B", lineHeight: 1.5, marginBottom: "0.75rem" }}>
-                  यस विषयका आधिकारिक अध्ययन सामग्री तथा सर्ट नोट्स PDF हरू अध्ययन र डाउनलोड गर्नुहोस्।
-                </p>
                 <Link
-                  href={`/notes?subjectId=${selectedSubject.id}`}
-                  className="btn btn-primary btn-sm btn-full"
-                  style={{ backgroundColor: "#0284C7" }}
+                  href="/mcqs"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.4rem",
+                    color: "#0284C7",
+                    fontSize: "0.88rem",
+                    fontWeight: 700,
+                    textDecoration: "none",
+                  }}
                 >
-                  विषयगत नोटहरू हेर्नुहोस् (PDF)
+                  <Compass className="w-4 h-4" />
+                  <span>सम्पूर्ण विषय निर्देशिका (All Subjects) →</span>
                 </Link>
               </div>
-
-              {/* Trending Tests Widget */}
-              {trendingTests.length > 0 && (
-                <div className="examveda-sidebar-card">
-                  <div className="examveda-sidebar-title">
-                    <span className="flex items-center gap-1.5 text-rose-700">
-                      <Award className="w-4 h-4" />
-                      नमुना परीक्षा (Mock Tests)
-                    </span>
-                  </div>
-                  <div style={{ padding: "0.75rem 1rem" }}>
-                    {trendingTests.map((t) => (
-                      <div
-                        key={t.id}
-                        style={{
-                          padding: "0.75rem 0",
-                          borderBottom: "1px solid #F1F5F9",
-                        }}
-                      >
-                        <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#0F172A" }}>
-                          {t.title}
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-muted mt-1">
-                          <span>{t.durationMinutes} मिनेट</span>
-                          <span>•</span>
-                          <span>{t._count.questions} प्रश्नहरू</span>
-                        </div>
-                      </div>
-                    ))}
-                    <Link href="/exams" className="btn btn-secondary btn-sm btn-full mt-3">
-                      सबै नमुना परीक्षाहरू हेर्नुहोस्
-                    </Link>
-                  </div>
-                </div>
-              )}
             </aside>
           </div>
         </main>
@@ -789,7 +890,6 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
 
   // =========================================================================
   // SCENARIO 2: NO SUBJECT SELECTED YET (BEAUTIFUL SUBJECT DIRECTORY)
-  // This solves the problem of dumping mixed questions together!
   // =========================================================================
 
   // Fetch all subjects with question count
@@ -835,8 +935,8 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
     <div className="public-layout">
       <PublicNav user={user} />
 
-      <main style={{ backgroundColor: "#F8FAFC", flexGrow: 1, padding: "2rem 1rem 4rem" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <main style={{ backgroundColor: "#F8FAFC", flexGrow: 1, padding: "2.5rem 1.25rem 4rem" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
           {/* Header Banner */}
           <div
             style={{
@@ -988,7 +1088,7 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                   style={{
                     backgroundColor: "#FFFFFF",
                     border: "1px solid #E2E8F0",
-                    borderRadius: "12px",
+                    borderRadius: "14px",
                     padding: "1.5rem",
                     display: "flex",
                     flexDirection: "column",
@@ -1075,7 +1175,7 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                         gap: "0.4rem",
                         backgroundColor: "#0284C7",
                         color: "#FFFFFF",
-                        padding: "0.6rem 1rem",
+                        padding: "0.65rem 1rem",
                         borderRadius: "8px",
                         fontWeight: 700,
                         fontSize: "0.88rem",
@@ -1096,7 +1196,7 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                         backgroundColor: "#FFFFFF",
                         border: "1px solid #CBD5E1",
                         color: "#334155",
-                        padding: "0.6rem 0.75rem",
+                        padding: "0.65rem 0.75rem",
                         borderRadius: "8px",
                         textDecoration: "none",
                       }}
