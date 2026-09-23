@@ -3,7 +3,6 @@ import {
   ChevronDown,
   User,
   Search,
-  SlidersHorizontal,
   GraduationCap
 } from "lucide-react";
 
@@ -12,6 +11,14 @@ interface PublicNavProps {
 }
 
 export default function PublicNav({ user }: PublicNavProps) {
+  const navItems = [
+    { label: "Practice MCQs", href: "/mcqs" },
+    { label: "Exams", href: "/exams" },
+    { label: "Engineering MCQs", href: "/mcqs?cat=ENGINEERING_LICENSE" },
+    { label: "Computer MCQs", href: "/mcqs?cat=COMPUTER_OPERATOR" },
+    { label: "More", href: "/pricing" },
+  ];
+
   return (
     <header
       style={{
@@ -27,132 +34,93 @@ export default function PublicNav({ user }: PublicNavProps) {
         style={{
           maxWidth: "1280px",
           margin: "0 auto",
-          padding: "0.65rem 1.25rem",
+          padding: "0.6rem 1.25rem",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: "1.5rem",
+          gap: "1rem",
         }}
       >
-        {/* Left: Examveda Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-          <Link
-            href="/"
+        {/* Left: Brand Logo (Mock Nepal) */}
+        <Link
+          href="/"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            textDecoration: "none",
+            flexShrink: 0,
+          }}
+        >
+          <div
             style={{
+              width: "34px",
+              height: "34px",
+              borderRadius: "8px",
+              background: "linear-gradient(135deg, #DC2626, #EA580C)",
               display: "flex",
               alignItems: "center",
-              gap: "0.4rem",
-              textDecoration: "none",
+              justifyContent: "center",
+              color: "#FFFFFF",
+              boxShadow: "0 2px 6px rgba(220, 38, 38, 0.25)",
             }}
           >
-            <div
+            <GraduationCap className="w-5 h-5" />
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline" }}>
+            <span style={{ fontSize: "1.35rem", fontWeight: 900, color: "#DC2626", letterSpacing: "-0.03em" }}>
+              Mock
+            </span>
+            <span style={{ fontSize: "1.35rem", fontWeight: 900, color: "#0F172A", letterSpacing: "-0.03em", marginLeft: "2px" }}>
+              Nepal
+            </span>
+          </div>
+        </Link>
+
+        {/* Center: Slide-able Horizontal Row Navigation Menu */}
+        <nav
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: "0.5rem",
+            overflowX: "auto",
+            whiteSpace: "nowrap",
+            scrollbarWidth: "none",
+            flex: 1,
+            justifyContent: "center",
+            padding: "0.2rem 0",
+          }}
+        >
+          {navItems.map((item, idx) => (
+            <Link
+              key={idx}
+              href={item.href}
               style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "6px",
-                background: "linear-gradient(135deg, #DC2626, #EA580C)",
-                display: "flex",
+                display: "inline-flex",
                 alignItems: "center",
-                justifyContent: "center",
-                color: "#FFFFFF",
-              }}
-            >
-              <GraduationCap className="w-5 h-5" />
-            </div>
-            <div style={{ display: "flex", alignItems: "baseline" }}>
-              <span style={{ fontSize: "1.35rem", fontWeight: 900, color: "#DC2626", letterSpacing: "-0.03em" }}>
-                Exam
-              </span>
-              <span style={{ fontSize: "1.35rem", fontWeight: 800, color: "#0F172A", letterSpacing: "-0.03em" }}>
-                veda
-              </span>
-              <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "#0284C7", marginLeft: "4px", alignSelf: "flex-start" }}>
-                NEPAL
-              </span>
-            </div>
-          </Link>
-
-          {/* Center Navigation Dropdowns */}
-          <nav className="hidden md:flex items-center gap-1" style={{ fontSize: "0.88rem", fontWeight: 600 }}>
-            <Link
-              href="/mcqs"
-              className="flex items-center gap-1"
-              style={{
+                gap: "0.35rem",
                 color: "#334155",
-                padding: "0.4rem 0.75rem",
+                fontSize: "0.88rem",
+                fontWeight: 600,
+                padding: "0.45rem 0.85rem",
                 borderRadius: "6px",
                 textDecoration: "none",
-                transition: "color 150ms",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+                backgroundColor: "#F8FAFC",
+                border: "1px solid #E2E8F0",
+                transition: "all 150ms ease",
               }}
             >
-              <span>Practice MCQs</span>
+              <span>{item.label}</span>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </Link>
+          ))}
+        </nav>
 
-            <Link
-              href="/exams"
-              className="flex items-center gap-1"
-              style={{
-                color: "#334155",
-                padding: "0.4rem 0.75rem",
-                borderRadius: "6px",
-                textDecoration: "none",
-                transition: "color 150ms",
-              }}
-            >
-              <span>Exams</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </Link>
-
-            <Link
-              href="/mcqs?cat=ENGINEERING_LICENSE"
-              className="flex items-center gap-1"
-              style={{
-                color: "#334155",
-                padding: "0.4rem 0.75rem",
-                borderRadius: "6px",
-                textDecoration: "none",
-                transition: "color 150ms",
-              }}
-            >
-              <span>Engineering MCQs</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </Link>
-
-            <Link
-              href="/mcqs?cat=COMPUTER_OPERATOR"
-              className="flex items-center gap-1"
-              style={{
-                color: "#334155",
-                padding: "0.4rem 0.75rem",
-                borderRadius: "6px",
-                textDecoration: "none",
-                transition: "color 150ms",
-              }}
-            >
-              <span>Computer MCQs</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </Link>
-
-            <Link
-              href="/pricing"
-              className="flex items-center gap-1"
-              style={{
-                color: "#334155",
-                padding: "0.4rem 0.75rem",
-                borderRadius: "6px",
-                textDecoration: "none",
-                transition: "color 150ms",
-              }}
-            >
-              <span>More</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </Link>
-          </nav>
-        </div>
-
-        {/* Right: Search / Controls & User */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        {/* Right: Search & User Account */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
           <Link
             href="/mcqs"
             style={{
@@ -165,6 +133,7 @@ export default function PublicNav({ user }: PublicNavProps) {
               color: "#64748B",
               border: "1px solid #E2E8F0",
               textDecoration: "none",
+              backgroundColor: "#FFFFFF",
             }}
             title="Search MCQs"
           >
@@ -190,6 +159,7 @@ export default function PublicNav({ user }: PublicNavProps) {
                 textDecoration: "none",
                 fontSize: "0.85rem",
                 fontWeight: 700,
+                whiteSpace: "nowrap",
               }}
             >
               <div
@@ -224,6 +194,7 @@ export default function PublicNav({ user }: PublicNavProps) {
                   padding: "0.4rem 0.85rem",
                   borderRadius: "6px",
                   border: "1px solid #CBD5E1",
+                  whiteSpace: "nowrap",
                 }}
               >
                 <User className="w-3.5 h-3.5 text-slate-500" />
@@ -239,6 +210,7 @@ export default function PublicNav({ user }: PublicNavProps) {
                   textDecoration: "none",
                   padding: "0.4rem 0.95rem",
                   borderRadius: "6px",
+                  whiteSpace: "nowrap",
                 }}
               >
                 Register

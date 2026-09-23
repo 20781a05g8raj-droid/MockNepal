@@ -41,7 +41,7 @@ export default function PublicFooter() {
         </div>
 
         <div>
-          © 2026 MockNepal Examveda. All Rights Reserved.
+          © 2026 Mock Nepal. All Rights Reserved.
         </div>
       </div>
     </footer>
