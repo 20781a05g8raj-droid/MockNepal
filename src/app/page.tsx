@@ -1,26 +1,67 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
-import ExamvedaQuestionCard, { ExamvedaQuestionData } from "@/components/ExamvedaQuestionCard";
 import {
   Search,
-  BookOpen,
   CheckCircle2,
-  Clock,
-  Layers,
-  Sparkles,
   ChevronRight,
-  TrendingUp,
-  Award,
-  ShieldCheck,
-  GraduationCap,
-  Flame,
-  ArrowRight,
-  Cpu,
+  Calculator,
+  BookA,
+  Brain,
+  Shapes,
+  Globe,
+  FlaskConical,
+  Monitor,
+  BarChart3,
   Landmark,
-  FileCheck
+  Newspaper,
+  Building2,
+  FileCheck2,
+  GraduationCap,
+  School,
+  Wrench,
+  Shield,
+  Cpu,
+  Laptop,
+  Network,
+  Database,
+  Terminal,
+  Code,
+  Coffee,
+  FileCode,
+  Braces,
+  LineChart,
+  Bot,
+  Cloud,
+  Radio,
+  Cog,
+  HardHat,
+  Zap,
+  TestTube,
+  Car,
+  Dna,
+  Mountain,
+  Binary,
+  Atom,
+  Beaker,
+  Coins,
+  Users,
+  Scale,
+  Trees,
+  HeartHandshake,
+  Vote,
+  Sparkles,
+  TrendingUp,
+  Pill,
+  Megaphone,
+  Lightbulb,
+  BookOpenCheck,
+  CalendarDays,
+  CalendarRange,
+  FileDown,
+  UserCheck,
+  Building
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -28,508 +69,359 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const user = await getSessionUser();
 
-  // Fetch categories with exams, syllabi and question counts
-  let categories: any[] = [];
-  let featuredQuestions: ExamvedaQuestionData[] = [];
-  let totalQuestions = 0;
-  let totalMockTests = 0;
+  // 1. Practice MCQs For Competitive Exams
+  const generalSubjects = [
+    { title: "Aptitude", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Aptitude", icon: Calculator, color: "#EF4444", bg: "#FEE2E2" },
+    { title: "English", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=English", icon: BookA, color: "#10B981", bg: "#D1FAE5" },
+    { title: "Verbal Reasoning", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Reasoning", icon: Brain, color: "#3B82F6", bg: "#DBEAFE" },
+    { title: "Non-Verbal Reasoning", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Reasoning", icon: Shapes, color: "#F59E0B", bg: "#FEF3C7" },
+    { title: "General Knowledge", sub: "Practice MCQ Questions and Answers", href: "/mcqs?subject=GK", icon: Globe, color: "#EAB308", bg: "#FEF9C3" },
+    { title: "General Science", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Science", icon: FlaskConical, color: "#14B8A6", bg: "#CCFBF1" },
+    { title: "Computer Fundamentals", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=COMPUTER_OPERATOR", icon: Monitor, color: "#6366F1", bg: "#E0E7FF" },
+    { title: "Data Interpretation", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Data", icon: BarChart3, color: "#06B6D4", bg: "#CFFAFE" },
+    { title: "Banking Awareness", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=BANKING", icon: Landmark, color: "#64748B", bg: "#F1F5F9" },
+    { title: "Current Affairs", sub: "Practice MCQ Questions and Answers", href: "/mcqs?subject=CURRENT_AFFAIRS", icon: Newspaper, color: "#F43F5E", bg: "#FFE4E6" },
+  ];
 
-  try {
-    categories = await db.examCategory.findMany({
-      include: {
-        exams: {
-          where: { isActive: true },
-          include: {
-            syllabi: {
-              include: {
-                subjects: {
-                  include: {
-                    topics: {
-                      include: {
-                        _count: { select: { questions: true } },
-                      },
-                    },
-                    _count: { select: { questions: true } },
-                  },
-                },
-              },
-            },
-            _count: {
-              select: { questionExams: true, mockTests: true },
-            },
-          },
-        },
-      },
-      orderBy: { order: "asc" },
-    });
+  // 2. Prepare for Popular Competitive Exams
+  const popularExams = [
+    { title: "Lok Sewa Section Officer", sub: "First Paper GK & Aptitude MCQs", href: "/mcqs?cat=LOK_SEWA&q=Section+Officer", icon: Building2, color: "#2563EB", bg: "#EFF6FF" },
+    { title: "Lok Sewa Nayab Subba", sub: "Syllabus MCQs and Model Tests", href: "/mcqs?cat=LOK_SEWA&q=Nayab+Subba", icon: FileCheck2, color: "#059669", bg: "#ECFDF5" },
+    { title: "Lok Sewa Kharidar", sub: "General Knowledge & Arithmetic", href: "/mcqs?cat=LOK_SEWA&q=Kharidar", icon: GraduationCap, color: "#D97706", bg: "#FFFBEB" },
+    { title: "Banking (NRB, RBB, ADBL)", sub: "Banking Acts, Accounts & Economics", href: "/mcqs?cat=BANKING", icon: Landmark, color: "#DC2626", bg: "#FEF2F2" },
+    { title: "Shikshak Sewa (TSC)", sub: "Teaching License & Primary/Secondary", href: "/mcqs?cat=TEACHER_SERVICE", icon: School, color: "#0891B2", bg: "#ECFEFF" },
+    { title: "NEC Engineering License", sub: "Civil, Electrical & Computer License", href: "/mcqs?cat=ENGINEERING_LICENSE", icon: Wrench, color: "#475569", bg: "#F8FAFC" },
+    { title: "Nepal Police & Security", sub: "Inspector, ASI & Armed Police MCQs", href: "/mcqs?q=Police", icon: Shield, color: "#4F46E5", bg: "#EEF2FF" },
+    { title: "Computer Operator (PSC)", sub: "Hardware, OS, Office & IT MCQs", href: "/mcqs?cat=COMPUTER_OPERATOR", icon: Cpu, color: "#7C3AED", bg: "#F5F3FF" },
+  ];
 
-    // Fetch 3 realistic published questions with full versions for live practice on homepage
-    const featuredQuestionsRaw = await db.question.findMany({
-      where: { status: "PUBLISHED" },
-      include: {
-        versions: { orderBy: { versionNumber: "desc" }, take: 1 },
-        subject: true,
-        topic: true,
-      },
-      take: 3,
-      orderBy: { createdAt: "desc" },
-    });
+  // 3. Computer & Programming MCQs
+  const computerSubjects = [
+    { title: "Computer Fundamentals", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=COMPUTER_OPERATOR&q=Fundamentals", icon: Laptop, color: "#2563EB", bg: "#EFF6FF" },
+    { title: "Networking", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Networking", icon: Network, color: "#0891B2", bg: "#ECFEFF" },
+    { title: "Database (DBMS)", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Database", icon: Database, color: "#059669", bg: "#ECFDF5" },
+    { title: "Web Technology", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Web", icon: Globe, color: "#D97706", bg: "#FFFBEB" },
+    { title: "C Programming", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Programming", icon: Terminal, color: "#3B82F6", bg: "#DBEAFE" },
+    { title: "C++ Programming", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=OOP", icon: Code, color: "#EF4444", bg: "#FEE2E2" },
+    { title: "Java", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Java", icon: Coffee, color: "#B45309", bg: "#FEF3C7" },
+    { title: "Python", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Python", icon: FileCode, color: "#059669", bg: "#D1FAE5" },
+    { title: "JavaScript", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=JavaScript", icon: Braces, color: "#CA8A04", bg: "#FEF9C3" },
+    { title: "Data Science", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Data+Science", icon: LineChart, color: "#0284C7", bg: "#E0F2FE" },
+    { title: "Machine Learning", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Machine+Learning", icon: Bot, color: "#475569", bg: "#F1F5F9" },
+    { title: "Cloud Computing", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Cloud", icon: Cloud, color: "#4F46E5", bg: "#EEF2FF" },
+  ];
 
-    featuredQuestions = featuredQuestionsRaw
-      .filter((q) => q.versions.length > 0)
-      .map((q) => {
-        const v = q.versions[0];
-        return {
-          id: q.id,
-          questionText: v.questionText,
-          optionA: v.optionA,
-          optionB: v.optionB,
-          optionC: v.optionC,
-          optionD: v.optionD,
-          correctOption: v.correctOption,
-          explanation: v.explanation,
-          subjectName: q.subject?.name,
-          topicName: q.topic?.name,
-          difficulty: q.difficulty,
-          examYear: q.examYear,
-          source: q.source,
-        };
-      });
+  // 4. Engineering & Technical MCQs
+  const engineeringSubjects = [
+    { title: "Computer Engineering", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=ENGINEERING_LICENSE&q=Computer", icon: Cpu, color: "#2563EB", bg: "#EFF6FF" },
+    { title: "Electronics & Communication", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=ENGINEERING_LICENSE&q=Electronics", icon: Radio, color: "#0891B2", bg: "#ECFEFF" },
+    { title: "Mechanical Engineering", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=ENGINEERING_LICENSE&q=Mechanical", icon: Cog, color: "#DC2626", bg: "#FEF2F2" },
+    { title: "Civil Engineering", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=ENGINEERING_LICENSE&q=Civil", icon: HardHat, color: "#D97706", bg: "#FFFBEB" },
+    { title: "Electrical Engineering", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=ENGINEERING_LICENSE&q=Electrical", icon: Zap, color: "#F59E0B", bg: "#FEF3C7" },
+    { title: "Chemical Engineering", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=ENGINEERING_LICENSE&q=Chemical", icon: TestTube, color: "#0D9488", bg: "#F0FDFA" },
+    { title: "Automobile Engineering", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=ENGINEERING_LICENSE&q=Automobile", icon: Car, color: "#4F46E5", bg: "#EEF2FF" },
+    { title: "Biotechnology Engineering", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=ENGINEERING_LICENSE&q=Biotechnology", icon: Dna, color: "#16A34A", bg: "#DCFCE7" },
+    { title: "Mining Engineering", sub: "Practice MCQ Questions and Answers", href: "/mcqs?cat=ENGINEERING_LICENSE&q=Mining", icon: Mountain, color: "#64748B", bg: "#F8FAFC" },
+    { title: "Engineering Mathematics", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Mathematics", icon: Binary, color: "#E11D48", bg: "#FFE4E6" },
+    { title: "Engineering Physics", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Physics", icon: Atom, color: "#0284C7", bg: "#E0F2FE" },
+    { title: "Engineering Chemistry", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Chemistry", icon: Beaker, color: "#059669", bg: "#ECFDF5" },
+  ];
 
-    totalQuestions = await db.question.count({ where: { status: "PUBLISHED" } });
-    totalMockTests = await db.mockTest.count({ where: { status: "PUBLISHED" } });
-  } catch (error) {
-    console.error("Database query error on homepage:", error);
-  }
+  // 5. Graduate & Academic Subjects
+  const academicSubjects = [
+    { title: "Commerce", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Commerce", icon: Coins, color: "#2563EB", bg: "#EFF6FF" },
+    { title: "Management", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Management", icon: Users, color: "#059669", bg: "#ECFDF5" },
+    { title: "Law & Constitution", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Constitution", icon: Scale, color: "#DC2626", bg: "#FEF2F2" },
+    { title: "Agriculture & Forestry", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Agriculture", icon: Trees, color: "#16A34A", bg: "#DCFCE7" },
+    { title: "Sociology", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Sociology", icon: HeartHandshake, color: "#0891B2", bg: "#ECFEFF" },
+    { title: "Political Science", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Political+Science", icon: Vote, color: "#3B82F6", bg: "#DBEAFE" },
+    { title: "Psychology", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Psychology", icon: Sparkles, color: "#D97706", bg: "#FFFBEB" },
+    { title: "Economics", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Economics", icon: TrendingUp, color: "#475569", bg: "#F1F5F9" },
+    { title: "Pharmacy", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Pharmacy", icon: Pill, color: "#E11D48", bg: "#FFE4E6" },
+    { title: "Mass Communication & Journalism", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Journalism", icon: Megaphone, color: "#0284C7", bg: "#E0F2FE" },
+    { title: "Philosophy", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Philosophy", icon: Lightbulb, color: "#CA8A04", bg: "#FEF9C3" },
+    { title: "Education", sub: "Practice MCQ Questions and Answers", href: "/mcqs?q=Education", icon: BookOpenCheck, color: "#10B981", bg: "#D1FAE5" },
+  ];
 
-  const categoryHighlights = [
-    {
-      title: "लोक सेवा आयोग (Lok Sewa / PSC)",
-      code: "LOK_SEWA",
-      badge: "लो",
-      color: "#1D4ED8",
-      desc: "शाखा अधिकृत, नायब सुब्बा, खरिदार, कम्प्युटर अपरेटर र सुरक्षा निकायका आधिकारिक पाठ्यक्रम अनुसारका वस्तुगत प्रश्नहरू।",
-      tags: ["शाखा अधिकृत", "नासु", "खरिदार", "कम्प्युटर अपरेटर"],
-      href: "/mcqs?cat=LOK_SEWA",
-    },
-    {
-      title: "बैंकिङ सेवा (Banking Exams)",
-      code: "BANKING",
-      badge: "बैं",
-      color: "#059669",
-      desc: "नेपाल राष्ट्र बैंक (NRB), राष्ट्रिय वाणिज्य बैंक (RBB), कृषि विकास बैंक (ADBL) का ऐन-नियम, लेखा र बैंकिङ MCQs।",
-      tags: ["NRB Assistant", "RBB Level 4", "NBL", "BAFIA Act"],
-      href: "/mcqs?cat=BANKING",
-    },
-    {
-      title: "शिक्षक सेवा आयोग (TSC)",
-      code: "TEACHER_SERVICE",
-      badge: "शि",
-      color: "#D97706",
-      desc: "प्राथमिक (प्रा.वि.), निम्न माध्यमिक (नि.मा.वि.), माध्यमिक (मा.वि.) र अध्यापन अनुमति पत्र (Teaching License) तयारी।",
-      tags: ["प्रा.वि.", "नि.मा.वि.", "मा.वि.", "अध्यापन लाइसेन्स"],
-      href: "/mcqs?cat=TEACHER_SERVICE",
-    },
-    {
-      title: "इन्जिनियरिङ काउन्सिल (NEC License)",
-      code: "ENGINEERING_LICENSE",
-      badge: "इ",
-      color: "#4F46E5",
-      desc: "नेपाल इन्जिनियरिङ परिषद् (NEC) द्वारा संचालित सिभिल, कम्प्युटर र इलेक्ट्रिकल इन्जिनियरिङ लाइसेन्स परीक्षा।",
-      tags: ["NEC Civil License", "NEC Computer", "NBC 105", "Ethics"],
-      href: "/mcqs?cat=ENGINEERING_LICENSE",
-    },
-    {
-      title: "चिकित्सा तथा स्वास्थ्य लाइसेन्स",
-      code: "MEDICAL",
-      badge: "स्वा",
-      color: "#DC2626",
-      desc: "Medical Education Commission (CEE), Nepal Medical Council (NMCLE) र Nursing Council (NNC) परीक्षा तयारी।",
-      tags: ["CEE Entrance", "NMCLE", "Staff Nurse", "HA License"],
-      href: "/mcqs?cat=MEDICAL",
-    },
-    {
-      title: "नेपाल सामान्य ज्ञान तथा समसामयिक",
-      code: "GK",
-      badge: "GK",
-      color: "#7C3AED",
-      desc: "नेपालको भूगोल, इतिहास, संस्कृति, संविधान २०७२ र राष्ट्रिय तथा अन्तर्राष्ट्रिय समसामयिक घटनाक्रम २०८१/२०८२।",
-      tags: ["नेपालको भूगोल", "नेपालको इतिहास", "संविधान २०७२", "समसामयिक २०८१"],
-      href: "/mcqs?subject=GK",
-    },
+  // 6. Latest Current Affairs
+  const currentAffairsList = [
+    { title: "Daily Current Affairs", sub: "Read and Practice Current Affairs", href: "/mcqs?subject=CURRENT_AFFAIRS&q=Daily", icon: CalendarDays, color: "#2563EB", bg: "#EFF6FF" },
+    { title: "Monthly Current Affairs", sub: "Read and Practice Current Affairs", href: "/mcqs?subject=CURRENT_AFFAIRS&q=Monthly", icon: CalendarRange, color: "#059669", bg: "#ECFDF5" },
+    { title: "Current Affairs Download", sub: "Read and Practice Current Affairs", href: "/student/notes", icon: FileDown, color: "#DC2626", bg: "#FEF2F2" },
+  ];
+
+  // 7. Interview Questions & Answers
+  const interviewList = [
+    { title: "HR Interview", sub: "Interview Questions and Answers", href: "/mcqs?q=HR+Interview", icon: UserCheck, color: "#2563EB", bg: "#EFF6FF" },
+    { title: "Banking Interview", sub: "Interview Questions and Answers", href: "/mcqs?q=Banking+Interview", icon: Building, color: "#059669", bg: "#ECFDF5" },
+    { title: "Technical Interview", sub: "Interview Questions and Answers", href: "/mcqs?q=Technical+Interview", icon: Wrench, color: "#D97706", bg: "#FFFBEB" },
   ];
 
   return (
-    <div className="public-layout">
+    <div className="ev-page-wrapper">
       <PublicNav user={user} />
 
-      {/* ================= 1. EXAMVEDA-STYLE HERO BANNER ================= */}
-      <section
-        style={{
-          background: "linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%)",
-          borderBottom: "1px solid #E2E8F0",
-          padding: "3.5rem 1.5rem 3rem",
-        }}
-      >
-        <div className="container" style={{ maxWidth: "960px", textAlign: "center" }}>
-          <div
-            className="badge badge-primary mb-3"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.4rem",
-              padding: "0.3rem 0.8rem",
-            }}
-          >
-            <Flame className="w-4 h-4 text-amber-500" />
-            <span>नेपालको आधिकारिक वस्तुगत परीक्षा तयारी पोर्टल</span>
-          </div>
-
-          <h1
-            style={{
-              fontSize: "2.5rem",
-              fontWeight: 800,
-              lineHeight: 1.25,
-              color: "#0F172A",
-              marginBottom: "1rem",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            MCQ Questions and Solutions for all{" "}
-            <span style={{ color: "#0284C7" }}>Nepal Competitive Exams</span>
+      {/* ================= 1. EXAMVEDA HERO BANNER ================= */}
+      <section className="ev-hero-section">
+        <div className="ev-hero-container">
+          <h1 className="ev-hero-title">
+            MCQ Questions and Solutions for Competitive Exams
           </h1>
 
-          <p
-            style={{
-              fontSize: "1.1rem",
-              lineHeight: 1.6,
-              color: "#475569",
-              marginBottom: "2rem",
-              maxWidth: "780px",
-              margin: "0 auto 2rem",
-            }}
-          >
-            लोक सेवा आयोग, बैंकिङ, शिक्षक सेवा, इन्जिनियरिङ लाइसेन्स र प्रवेश परीक्षाका
-            हजारौं वस्तुगत प्रश्नहरू नि:शुल्क हल गर्नुहोस्, विस्तृत उत्तर र व्याख्या हेर्नुहोस्।
+          <div className="ev-hero-badge">
+            <CheckCircle2 className="w-4 h-4 text-sky-600" />
+            <span>Trusted MCQ Practice Platform</span>
+          </div>
+
+          <p className="ev-hero-desc">
+            Your one-stop destination for job exam preparation with daily practice questions covering GK, Aptitude, English, Reasoning, Computer, and Current Affairs.
           </p>
 
-          {/* Examveda Prominent Search Box */}
-          <form
-            action="/mcqs"
-            method="GET"
-            style={{
-              maxWidth: "680px",
-              margin: "0 auto 1.5rem",
-              display: "flex",
-              gap: "0.5rem",
-              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-              borderRadius: "999px",
-              backgroundColor: "#FFFFFF",
-              padding: "0.35rem 0.5rem 0.35rem 1.25rem",
-              border: "2px solid #CBD5E1",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", flex: 1, gap: "0.75rem" }}>
-              <Search className="w-5 h-5 text-slate-400" />
+          {/* Search Card Box */}
+          <div className="ev-search-card">
+            <span className="ev-search-label">
+              Search MCQs, Topics & Exams
+            </span>
+            <form action="/mcqs" method="GET" className="ev-search-box">
               <input
                 type="text"
                 name="q"
-                placeholder="Search Nepal MCQs (खरिदार, अधिकृत, NRB, NEC License, संविधान, भूगोल)..."
-                style={{
-                  width: "100%",
-                  border: "none",
-                  outline: "none",
-                  fontSize: "0.95rem",
-                  color: "#0F172A",
-                  backgroundColor: "transparent",
-                }}
+                placeholder="Search any question..."
+                className="ev-search-input"
               />
-            </div>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              style={{
-                borderRadius: "999px",
-                padding: "0.65rem 1.5rem",
-                backgroundColor: "#0284C7",
-                borderColor: "#0284C7",
-                fontWeight: 700,
-              }}
-            >
-              खोजी गर्नुहोस्
-            </button>
-          </form>
-
-          {/* Quick Search Tag Pills */}
-          <div
-            className="flex items-center justify-center gap-2 flex-wrap"
-            style={{ fontSize: "0.82rem", color: "#64748B" }}
-          >
-            <span className="font-semibold text-slate-700">लोकप्रिय खोजी:</span>
-            {[
-              { label: "शाखा अधिकृत", q: "शाखा अधिकृत" },
-              { label: "नायब सुब्बा", q: "नायब सुब्बा" },
-              { label: "खरिदार", q: "खरिदार" },
-              { label: "नेपाल राष्ट्र बैंक", q: "नेपाल राष्ट्र बैंक" },
-              { label: "NEC License", q: "NEC" },
-              { label: "नेपालको संविधान", q: "संविधान" },
-              { label: "नेपालको भूगोल", q: "भूगोल" },
-              { label: "समसामयिक २०८१", q: "समसामयिक" },
-            ].map((pill, idx) => (
-              <Link
-                key={idx}
-                href={`/mcqs?q=${encodeURIComponent(pill.q)}`}
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #CBD5E1",
-                  borderRadius: "999px",
-                  padding: "0.2rem 0.65rem",
-                  color: "#334155",
-                  textDecoration: "none",
-                  transition: "all 150ms",
-                }}
-              >
-                {pill.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* Key Features Banner */}
-          <div
-            className="flex items-center justify-center gap-8 mt-8 flex-wrap"
-            style={{ fontSize: "0.85rem", color: "#64748B", borderTop: "1px solid #E2E8F0", paddingTop: "1.25rem" }}
-          >
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>{totalQuestions}+ प्रमाणीकृत वस्तुगत प्रश्नहरू</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>नि:शुल्क अभ्यास तथा विस्तृत व्याख्या</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>लोक सेवा २०% नेगेटिभ मार्किङ नियम</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>{totalMockTests}+ अनलाइन नमुना परीक्षाहरू</span>
-            </span>
+              <button type="submit" className="ev-search-btn">
+                <Search className="w-4 h-4" />
+                <span>Search</span>
+              </button>
+            </form>
           </div>
         </div>
       </section>
 
-      {/* ================= 2. EXAMVEDA CATEGORY MATRIX ================= */}
-      <section style={{ padding: "3.5rem 1.5rem", backgroundColor: "#FFFFFF" }}>
-        <div className="container">
-          <div className="text-center mb-8">
-            <span
-              style={{
-                fontSize: "0.8rem",
-                fontWeight: 700,
-                color: "#0284C7",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-              }}
-            >
-              नेपाल परीक्षा पाठ्यक्रम
-            </span>
-            <h2 style={{ fontSize: "1.85rem", fontWeight: 800, color: "#0F172A", marginTop: "0.3rem" }}>
-              Explore Competitive Exam Categories
-            </h2>
-            <p style={{ maxWidth: "620px", margin: "0.4rem auto 0", color: "#64748B", fontSize: "0.95rem" }}>
-              आफ्नो परीक्षा विधा छान्नुहोस् र अध्याय अनुसारका महत्वपूर्ण प्रश्नोत्तरहरू तुरुन्त अभ्यास गर्नुहोस्।
-            </p>
+      {/* ================= 2. MAIN CATEGORY SECTIONS CONTAINER ================= */}
+      <main className="ev-main-container">
+        {/* SECTION 1: Practice MCQs For Competitive Exams */}
+        <section className="ev-section">
+          <div className="ev-section-bar">
+            <span>Practice MCQs For Competitive Exams</span>
           </div>
-
-          <div className="grid grid-cols-3 gap-6">
-            {categoryHighlights.map((cat, idx) => (
-              <div
-                key={idx}
-                className="card card-hover flex flex-col justify-between"
-                style={{
-                  border: "1px solid #E2E8F0",
-                  borderRadius: "12px",
-                  padding: "1.5rem",
-                  transition: "transform 150ms ease, box-shadow 150ms ease",
-                }}
-              >
-                <div>
-                  <div className="flex items-center gap-3 mb-3">
-                    <div
-                      style={{
-                        width: "42px",
-                        height: "42px",
-                        borderRadius: "10px",
-                        backgroundColor: cat.color,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#FFFFFF",
-                        fontWeight: 800,
-                        fontSize: "1rem",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {cat.badge}
+          <p className="ev-section-desc">
+            Practice multiple choice questions and answers for competitive exams and entrance tests.
+          </p>
+          <div className="ev-grid-4">
+            {generalSubjects.map((item, idx) => {
+              const IconComponent = item.icon;
+              return (
+                <Link key={idx} href={item.href} className="ev-card">
+                  <div className="ev-card-left">
+                    <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                      <IconComponent className="w-5 h-5" />
                     </div>
-                    <div>
-                      <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0F172A", lineHeight: 1.2 }}>
-                        {cat.title}
-                      </h3>
-                      <span style={{ fontSize: "0.75rem", color: "#64748B", fontWeight: 600 }}>
-                        आधिकारिक पाठ्यक्रम
-                      </span>
+                    <div className="ev-card-text">
+                      <div className="ev-card-title">{item.title}</div>
+                      <div className="ev-card-sub">{item.sub}</div>
                     </div>
                   </div>
-
-                  <p style={{ fontSize: "0.88rem", color: "#475569", lineHeight: 1.55, marginBottom: "1rem" }}>
-                    {cat.desc}
-                  </p>
-
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {cat.tags.map((t, tIdx) => (
-                      <span
-                        key={tIdx}
-                        style={{
-                          fontSize: "0.72rem",
-                          fontWeight: 600,
-                          backgroundColor: "#F1F5F9",
-                          color: "#334155",
-                          padding: "0.15rem 0.5rem",
-                          borderRadius: "4px",
-                        }}
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <Link
-                  href={cat.href}
-                  className="btn btn-secondary btn-sm btn-full"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    fontWeight: 600,
-                    borderColor: "#CBD5E1",
-                  }}
-                >
-                  <span>वस्तुगत प्रश्नहरू अभ्यास गर्नुहोस्</span>
-                  <ChevronRight className="w-4 h-4 text-sky-600" />
+                  <ChevronRight className="w-4 h-4 ev-card-arrow" />
                 </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ================= 3. LIVE EXAMVEDA PRACTICE FEED ON HOMEPAGE ================= */}
-      <section style={{ padding: "3.5rem 1.5rem", backgroundColor: "#F8FAFC", borderTop: "1px solid #E2E8F0" }}>
-        <div className="container">
-          <div className="flex justify-between items-end mb-6 flex-wrap gap-4">
-            <div>
-              <span
-                style={{
-                  fontSize: "0.8rem",
-                  fontWeight: 700,
-                  color: "#059669",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                }}
-              >
-                प्रत्यक्ष अभ्यास (Live Practice)
-              </span>
-              <h2 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#0F172A", marginTop: "0.25rem" }}>
-                Practice Trending MCQs with Instant Answers
-              </h2>
-              <p style={{ color: "#64748B", fontSize: "0.92rem", marginTop: "0.25rem" }}>
-                उत्तर छान्नुहोस् र तुरुन्त सही/गलत तथा आधिकारिक व्याख्या परीक्षण गर्नुहोस्।
-              </p>
-            </div>
+        {/* SECTION 2: Prepare for Popular Competitive Exams */}
+        <section className="ev-section">
+          <div className="ev-section-bar">
+            <span>Prepare for Popular Competitive Exams</span>
+          </div>
+          <p className="ev-section-desc">
+            Find exam syllabus, preparation resources, subject-wise practice questions and mock tests.
+          </p>
+          <div className="ev-grid-4">
+            {popularExams.map((item, idx) => {
+              const IconComponent = item.icon;
+              return (
+                <Link key={idx} href={item.href} className="ev-card">
+                  <div className="ev-card-left">
+                    <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                      <IconComponent className="w-5 h-5" />
+                    </div>
+                    <div className="ev-card-text">
+                      <div className="ev-card-title">{item.title}</div>
+                      <div className="ev-card-sub">{item.sub}</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 ev-card-arrow" />
+                </Link>
+              );
+            })}
+          </div>
 
-            <Link href="/mcqs" className="btn btn-primary btn-sm" style={{ backgroundColor: "#0284C7" }}>
-              <span>सबै प्रश्नहरू हेर्नुहोस् (Explore All MCQs)</span>
-              <ArrowRight className="w-4 h-4" />
+          {/* Quick Filter Tag Pills */}
+          <div className="ev-tags-row">
+            <Link href="/exams" className="ev-tag-pill">
+              All Exams ▾
+            </Link>
+            <Link href="/mcqs?cat=LOK_SEWA" className="ev-tag-pill">
+              Lok Sewa Exams ▾
+            </Link>
+            <Link href="/mcqs?cat=BANKING" className="ev-tag-pill">
+              Banking Exams ▾
+            </Link>
+            <Link href="/mcqs?cat=ENGINEERING_LICENSE" className="ev-tag-pill">
+              Engineering License ▾
+            </Link>
+            <Link href="/mcqs?cat=TEACHER_SERVICE" className="ev-tag-pill">
+              Teacher Service (TSC) ▾
             </Link>
           </div>
+        </section>
 
-          <div style={{ maxWidth: "880px", margin: "0 auto" }}>
-            {featuredQuestions.map((q, idx) => (
-              <ExamvedaQuestionCard
-                key={q.id}
-                questionNumber={idx + 1}
-                question={q}
-              />
-            ))}
-
-            <div className="text-center mt-6">
-              <Link href="/mcqs" className="btn btn-secondary btn-lg" style={{ borderColor: "#CBD5E1" }}>
-                <span>थप १००+ वस्तुगत प्रश्नहरू अभ्यास गर्नुहोस्</span>
-                <ChevronRight className="w-5 h-5" />
-              </Link>
-            </div>
+        {/* SECTION 3: Computer & Programming MCQs */}
+        <section className="ev-section">
+          <div className="ev-section-bar">
+            <span>Computer & Programming MCQs</span>
           </div>
-        </div>
-      </section>
-
-      {/* ================= 4. ALL-SUBJECTS MEGA DIRECTORY ================= */}
-      <section style={{ padding: "3.5rem 1.5rem", backgroundColor: "#FFFFFF", borderTop: "1px solid #E2E8F0" }}>
-        <div className="container">
-          <div className="text-center mb-8">
-            <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4F46E5", textTransform: "uppercase" }}>
-              विषयगत सूची (Subject Directory)
-            </span>
-            <h2 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#0F172A", marginTop: "0.25rem" }}>
-              Browse MCQs by Subject & Curriculum Topic
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-4 gap-6">
-            {categories.flatMap((cat: any) =>
-              (cat.exams || []).flatMap((ex: any) =>
-                (ex.syllabi || []).flatMap((syl: any) =>
-                  (syl.subjects || []).map((sub: any) => (
-                    <div
-                      key={sub.id}
-                      style={{
-                        padding: "1rem",
-                        borderRadius: "8px",
-                        backgroundColor: "#F8FAFC",
-                        border: "1px solid #E2E8F0",
-                      }}
-                    >
-                      <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "#0F172A", marginBottom: "0.5rem" }}>
-                        {sub.name}
-                      </div>
-                      <div style={{ fontSize: "0.78rem", color: "#64748B", marginBottom: "0.75rem" }}>
-                        {cat.name.split("(")[0]} • {sub._count.questions} MCQs
-                      </div>
-                      <Link
-                        href={`/mcqs?cat=${cat.code}&subject=${sub.code}`}
-                        style={{
-                          fontSize: "0.8rem",
-                          color: "#0284C7",
-                          fontWeight: 600,
-                          textDecoration: "none",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "0.25rem",
-                        }}
-                      >
-                        <span>प्रश्नोत्तर हेर्नुहोस्</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </Link>
+          <p className="ev-section-desc">
+            Practice computer science & programming solved objective MCQs for competitive exams and interviews.
+          </p>
+          <div className="ev-grid-4">
+            {computerSubjects.map((item, idx) => {
+              const IconComponent = item.icon;
+              return (
+                <Link key={idx} href={item.href} className="ev-card">
+                  <div className="ev-card-left">
+                    <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                      <IconComponent className="w-5 h-5" />
                     </div>
-                  ))
-                )
-              )
-            )}
+                    <div className="ev-card-text">
+                      <div className="ev-card-title">{item.title}</div>
+                      <div className="ev-card-sub">{item.sub}</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 ev-card-arrow" />
+                </Link>
+              );
+            })}
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* SECTION 4: Engineering & Technical MCQs */}
+        <section className="ev-section">
+          <div className="ev-section-bar">
+            <span>Engineering & Technical MCQs</span>
+          </div>
+          <p className="ev-section-desc">
+            Practice engineering solved MCQs for NEC License, engineering government exams and technical services.
+          </p>
+          <div className="ev-grid-4">
+            {engineeringSubjects.map((item, idx) => {
+              const IconComponent = item.icon;
+              return (
+                <Link key={idx} href={item.href} className="ev-card">
+                  <div className="ev-card-left">
+                    <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                      <IconComponent className="w-5 h-5" />
+                    </div>
+                    <div className="ev-card-text">
+                      <div className="ev-card-title">{item.title}</div>
+                      <div className="ev-card-sub">{item.sub}</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 ev-card-arrow" />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* SECTION 5: Graduate & Academic Subjects */}
+        <section className="ev-section">
+          <div className="ev-section-bar">
+            <span>Graduate & Academic Subjects</span>
+          </div>
+          <p className="ev-section-desc">
+            Practice MCQ questions for graduation programs and higher education subjects.
+          </p>
+          <div className="ev-grid-4">
+            {academicSubjects.map((item, idx) => {
+              const IconComponent = item.icon;
+              return (
+                <Link key={idx} href={item.href} className="ev-card">
+                  <div className="ev-card-left">
+                    <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                      <IconComponent className="w-5 h-5" />
+                    </div>
+                    <div className="ev-card-text">
+                      <div className="ev-card-title">{item.title}</div>
+                      <div className="ev-card-sub">{item.sub}</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 ev-card-arrow" />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* SECTION 6: Latest Current Affairs */}
+        <section className="ev-section">
+          <div className="ev-section-bar">
+            <span>Latest Current Affairs</span>
+          </div>
+          <p className="ev-section-desc">
+            Stay updated with latest daily and monthly current affairs for upcoming examinations.
+          </p>
+          <div className="ev-grid-4">
+            {currentAffairsList.map((item, idx) => {
+              const IconComponent = item.icon;
+              return (
+                <Link key={idx} href={item.href} className="ev-card">
+                  <div className="ev-card-left">
+                    <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                      <IconComponent className="w-5 h-5" />
+                    </div>
+                    <div className="ev-card-text">
+                      <div className="ev-card-title">{item.title}</div>
+                      <div className="ev-card-sub">{item.sub}</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 ev-card-arrow" />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* SECTION 7: Interview Questions & Answers */}
+        <section className="ev-section">
+          <div className="ev-section-bar">
+            <span>Interview Questions & Answers</span>
+          </div>
+          <p className="ev-section-desc">
+            Prepare for HR, banking and technical interviews with frequently asked questions.
+          </p>
+          <div className="ev-grid-4">
+            {interviewList.map((item, idx) => {
+              const IconComponent = item.icon;
+              return (
+                <Link key={idx} href={item.href} className="ev-card">
+                  <div className="ev-card-left">
+                    <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                      <IconComponent className="w-5 h-5" />
+                    </div>
+                    <div className="ev-card-text">
+                      <div className="ev-card-title">{item.title}</div>
+                      <div className="ev-card-sub">{item.sub}</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 ev-card-arrow" />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      </main>
 
       <PublicFooter />
     </div>
