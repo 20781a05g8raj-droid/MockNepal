@@ -129,7 +129,13 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
     });
   } else if (currentSubjectCode) {
     selectedSubject = await db.subject.findFirst({
-      where: { code: currentSubjectCode },
+      where: {
+        OR: [
+          { code: currentSubjectCode },
+          { code: { contains: currentSubjectCode } },
+          { name: { contains: currentSubjectCode } },
+        ],
+      },
       include: {
         syllabusVersion: {
           include: {
@@ -710,7 +716,7 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                 </p>
               </div>
 
-              {/* Upload Notes / PDF Card */}
+              {/* Study Notes & PDFs Card */}
               <div
                 style={{
                   backgroundColor: "#FFFFFF",
@@ -723,18 +729,18 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
                 <div className="flex items-center gap-2 mb-2">
                   <FileText className="w-4 h-4 text-sky-600" />
                   <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0F172A" }}>
-                    नोट तथा पाठ्यक्रम PDF
+                    अध्ययन नोट तथा PDF
                   </span>
                 </div>
                 <p style={{ fontSize: "0.8rem", color: "#64748B", lineHeight: 1.5, marginBottom: "0.75rem" }}>
-                  शिक्षक वा व्यवस्थापकले नयाँ नोट तथा पाठ्यक्रम सिधै पोर्टलमा थप्न सक्नुहुन्छ।
+                  यस विषयका आधिकारिक अध्ययन सामग्री तथा सर्ट नोट्स PDF हरू अध्ययन र डाउनलोड गर्नुहोस्।
                 </p>
                 <Link
-                  href="/admin/notes"
+                  href={`/notes?subjectId=${selectedSubject.id}`}
                   className="btn btn-primary btn-sm btn-full"
                   style={{ backgroundColor: "#0284C7" }}
                 >
-                  PDF नोट अपलोड गर्नुहोस्
+                  विषयगत नोटहरू हेर्नुहोस् (PDF)
                 </Link>
               </div>
 

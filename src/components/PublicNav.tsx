@@ -17,9 +17,11 @@ interface PublicNavProps {
 export default function PublicNav({ user }: PublicNavProps) {
   const navItems = [
     { label: "Practice MCQs", href: "/mcqs", icon: BookOpen },
-    { label: "Syllabus (पाठ्यक्रम)", href: "/exams", icon: Layers },
-    { label: "Notes & PDFs (नोट्स)", href: "/notes", icon: FileText },
-    { label: "Free vs Pro", href: "/pricing", icon: Sparkles },
+    { label: "Exams", href: "/exams", icon: Layers },
+    { label: "Engineering MCQs", href: "/mcqs?cat=ENGINEERING_LICENSE", icon: Layers },
+    { label: "Computer MCQs", href: "/mcqs?cat=COMPUTER_OPERATOR", icon: Layers },
+    { label: "Notes & Syllabus", href: "/notes", icon: FileText },
+    { label: "Pro / Pricing", href: "/pricing", icon: Sparkles },
   ];
 
   return (
@@ -125,30 +127,8 @@ export default function PublicNav({ user }: PublicNavProps) {
           })}
         </nav>
 
-        {/* Right: Search, Upload Notes Button & User Account */}
+        {/* Right: Search & User Account */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", flexShrink: 0 }}>
-          {/* Upload Notes (PDF) Button */}
-          <Link
-            href="/admin/notes"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.35rem",
-              fontSize: "0.82rem",
-              fontWeight: 700,
-              color: "#0284C7",
-              backgroundColor: "#F0F9FF",
-              border: "1px solid #BAE6FD",
-              padding: "0.4rem 0.75rem",
-              borderRadius: "6px",
-              textDecoration: "none",
-              whiteSpace: "nowrap",
-            }}
-            title="Upload Study Notes or Syllabus PDF"
-          >
-            <Upload className="w-3.5 h-3.5 text-sky-600" />
-            <span className="hidden sm:inline">Upload Notes (PDF)</span>
-          </Link>
 
           <Link
             href="/mcqs"

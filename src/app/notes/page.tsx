@@ -138,31 +138,7 @@ export default async function PublicNotesPage({ searchParams }: NotesPageProps) 
               </p>
             </div>
 
-            {/* Upload Notes Action */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              <Link
-                href="/admin/notes"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  backgroundColor: "#0B5ED7",
-                  color: "#FFFFFF",
-                  padding: "0.65rem 1.25rem",
-                  borderRadius: "8px",
-                  fontWeight: 700,
-                  fontSize: "0.9rem",
-                  textDecoration: "none",
-                  boxShadow: "0 2px 8px rgba(11, 94, 215, 0.25)",
-                }}
-              >
-                <Upload className="w-4 h-4" />
-                <span>Upload New Notes (PDF)</span>
-              </Link>
-              <span style={{ fontSize: "0.72rem", color: "#94A3B8", textAlign: "center" }}>
-                Admin & Educator Portal
-              </span>
-            </div>
+
           </div>
 
           {/* Subject Filter Pills */}
