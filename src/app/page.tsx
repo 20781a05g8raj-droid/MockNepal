@@ -23,74 +23,84 @@ import {
   FileCheck
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const user = await getSessionUser();
 
   // Fetch categories with exams, syllabi and question counts
-  const categories = await db.examCategory.findMany({
-    include: {
-      exams: {
-        where: { isActive: true },
-        include: {
-          syllabi: {
-            include: {
-              subjects: {
-                include: {
-                  topics: {
-                    include: {
-                      _count: { select: { questions: true } },
+  let categories: any[] = [];
+  let featuredQuestions: ExamvedaQuestionData[] = [];
+  let totalQuestions = 0;
+  let totalMockTests = 0;
+
+  try {
+    categories = await db.examCategory.findMany({
+      include: {
+        exams: {
+          where: { isActive: true },
+          include: {
+            syllabi: {
+              include: {
+                subjects: {
+                  include: {
+                    topics: {
+                      include: {
+                        _count: { select: { questions: true } },
+                      },
                     },
+                    _count: { select: { questions: true } },
                   },
-                  _count: { select: { questions: true } },
                 },
               },
             },
-          },
-          _count: {
-            select: { questionExams: true, mockTests: true },
+            _count: {
+              select: { questionExams: true, mockTests: true },
+            },
           },
         },
       },
-    },
-    orderBy: { order: "asc" },
-  });
-
-  // Fetch 3 realistic published questions with full versions for live practice on homepage
-  const featuredQuestionsRaw = await db.question.findMany({
-    where: { status: "PUBLISHED" },
-    include: {
-      versions: { orderBy: { versionNumber: "desc" }, take: 1 },
-      subject: true,
-      topic: true,
-    },
-    take: 3,
-    orderBy: { createdAt: "desc" },
-  });
-
-  const featuredQuestions: ExamvedaQuestionData[] = featuredQuestionsRaw
-    .filter((q) => q.versions.length > 0)
-    .map((q) => {
-      const v = q.versions[0];
-      return {
-        id: q.id,
-        questionText: v.questionText,
-        optionA: v.optionA,
-        optionB: v.optionB,
-        optionC: v.optionC,
-        optionD: v.optionD,
-        correctOption: v.correctOption,
-        explanation: v.explanation,
-        subjectName: q.subject?.name,
-        topicName: q.topic?.name,
-        difficulty: q.difficulty,
-        examYear: q.examYear,
-        source: q.source,
-      };
+      orderBy: { order: "asc" },
     });
 
-  // Total system metrics
-  const totalQuestions = await db.question.count({ where: { status: "PUBLISHED" } });
-  const totalMockTests = await db.mockTest.count({ where: { status: "PUBLISHED" } });
+    // Fetch 3 realistic published questions with full versions for live practice on homepage
+    const featuredQuestionsRaw = await db.question.findMany({
+      where: { status: "PUBLISHED" },
+      include: {
+        versions: { orderBy: { versionNumber: "desc" }, take: 1 },
+        subject: true,
+        topic: true,
+      },
+      take: 3,
+      orderBy: { createdAt: "desc" },
+    });
+
+    featuredQuestions = featuredQuestionsRaw
+      .filter((q) => q.versions.length > 0)
+      .map((q) => {
+        const v = q.versions[0];
+        return {
+          id: q.id,
+          questionText: v.questionText,
+          optionA: v.optionA,
+          optionB: v.optionB,
+          optionC: v.optionC,
+          optionD: v.optionD,
+          correctOption: v.correctOption,
+          explanation: v.explanation,
+          subjectName: q.subject?.name,
+          topicName: q.topic?.name,
+          difficulty: q.difficulty,
+          examYear: q.examYear,
+          source: q.source,
+        };
+      });
+
+    totalQuestions = await db.question.count({ where: { status: "PUBLISHED" } });
+    totalMockTests = await db.mockTest.count({ where: { status: "PUBLISHED" } });
+  } catch (error) {
+    console.error("Database query error on homepage:", error);
+  }
 
   const categoryHighlights = [
     {
@@ -478,10 +488,10 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-4 gap-6">
-            {categories.flatMap((cat) =>
-              cat.exams.flatMap((ex) =>
-                ex.syllabi.flatMap((syl) =>
-                  syl.subjects.map((sub) => (
+            {categories.flatMap((cat: any) =>
+              (cat.exams || []).flatMap((ex: any) =>
+                (ex.syllabi || []).flatMap((syl: any) =>
+                  (syl.subjects || []).map((sub: any) => (
                     <div
                       key={sub.id}
                       style={{

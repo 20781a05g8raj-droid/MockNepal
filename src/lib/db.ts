@@ -1,9 +1,41 @@
 import { PrismaClient } from "@prisma/client";
+import fs from "fs";
+import path from "path";
+
+function getPrismaClient(): PrismaClient {
+  // If an external database URL is provided (e.g. PostgreSQL, Supabase, Neon)
+  if (process.env.DATABASE_URL && !process.env.DATABASE_URL.startsWith("file:")) {
+    return new PrismaClient();
+  }
+
+  // Fallback for serverless environments (e.g. Vercel) where root filesystem is read-only
+  if (process.env.VERCEL) {
+    const tmpDbPath = path.join("/tmp", "dev.db");
+    const sourceDbPath = path.join(process.cwd(), "prisma", "dev.db");
+
+    try {
+      if (!fs.existsSync(tmpDbPath) && fs.existsSync(sourceDbPath)) {
+        fs.copyFileSync(sourceDbPath, tmpDbPath);
+      }
+      return new PrismaClient({
+        datasources: {
+          db: {
+            url: `file:${tmpDbPath}`,
+          },
+        },
+      });
+    } catch (e) {
+      console.error("Error configuring SQLite in /tmp for Vercel:", e);
+    }
+  }
+
+  return new PrismaClient();
+}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-export const db = globalForPrisma.prisma ?? new PrismaClient();
+export const db = globalForPrisma.prisma ?? getPrismaClient();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;

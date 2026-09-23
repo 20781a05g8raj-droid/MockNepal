@@ -32,6 +32,8 @@ interface McqsPageProps {
   }>;
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
   const user = await getSessionUser();
   const params = await searchParams;
