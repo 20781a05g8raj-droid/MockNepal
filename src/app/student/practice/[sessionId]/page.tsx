@@ -12,96 +12,24 @@ interface PracticeSessionPageProps {
 export default async function PracticeSessionPage({ params }: PracticeSessionPageProps) {
   const { sessionId } = await params;
   const user = await getSessionUser();
-  if (!user) return redirect("/login");
+  if (!user) return null;
 
-  let session: any = null;
-
-  try {
-    session = await db.practiceSession.findUnique({
-      where: { id: sessionId },
-      include: {
-        exam: true,
-        subject: true,
-        topic: true,
-        answers: {
-          include: {
-            questionVersion: {
-              include: { question: true },
-            },
+  const session = await db.practiceSession.findUnique({
+    where: { id: sessionId },
+    include: {
+      exam: true,
+      subject: true,
+      topic: true,
+      answers: {
+        include: {
+          questionVersion: {
+            include: { question: true },
           },
-          orderBy: { submittedAt: "asc" },
         },
+        orderBy: { submittedAt: "asc" },
       },
-    });
-  } catch (e) {
-    console.warn("DB lookup error for session:", e);
-  }
-
-  // If session not found in current database (e.g. cross-lambda serverless environment)
-  if (!session && sessionId.startsWith("sess_")) {
-    try {
-      const decodedJson = Buffer.from(sessionId.slice(5), "base64url").toString("utf-8");
-      const decoded = JSON.parse(decodedJson);
-
-      if (decoded.u === user.id) {
-        const exam = await db.exam.findUnique({ where: { id: decoded.e } });
-        const subject = await db.subject.findUnique({ where: { id: decoded.s } });
-        const topic = decoded.t && decoded.t !== "ALL" ? await db.topic.findUnique({ where: { id: decoded.t } }) : null;
-
-        if (exam && subject) {
-          // Attempt to persist into this container's DB
-          try {
-            session = await db.practiceSession.upsert({
-              where: { id: decoded.id },
-              update: {},
-              create: {
-                id: decoded.id,
-                userId: user.id,
-                examId: decoded.e,
-                subjectId: decoded.s,
-                topicId: decoded.t && decoded.t !== "ALL" ? decoded.t : null,
-                difficultyFilter: decoded.d || "ALL",
-                totalQuestions: decoded.c || 10,
-                status: "IN_PROGRESS",
-              },
-              include: {
-                exam: true,
-                subject: true,
-                topic: true,
-                answers: {
-                  include: {
-                    questionVersion: {
-                      include: { question: true },
-                    },
-                  },
-                  orderBy: { submittedAt: "asc" },
-                },
-              },
-            });
-          } catch {
-            session = {
-              id: decoded.id || sessionId,
-              userId: user.id,
-              examId: decoded.e,
-              subjectId: decoded.s,
-              topicId: decoded.t && decoded.t !== "ALL" ? decoded.t : null,
-              difficultyFilter: decoded.d || "ALL",
-              totalQuestions: decoded.c || 10,
-              status: "IN_PROGRESS",
-              startedAt: new Date(decoded.ts || Date.now()),
-              completedAt: null,
-              exam,
-              subject,
-              topic,
-              answers: [],
-            };
-          }
-        }
-      }
-    } catch (e) {
-      console.error("Failed to decode session token:", e);
-    }
-  }
+    },
+  });
 
   if (!session || session.userId !== user.id) {
     notFound();
@@ -113,23 +41,18 @@ export default async function PracticeSessionPage({ params }: PracticeSessionPag
   }
 
   // Get user bookmarks
-  let bookmarkedSet = new Set<string>();
-  try {
-    const userBookmarks = await db.bookmark.findMany({
-      where: { userId: user.id, itemType: "QUESTION" },
-      select: { itemId: true },
-    });
-    bookmarkedSet = new Set(userBookmarks.map((b) => b.itemId));
-  } catch (e) {
-    console.warn("Could not load bookmarks:", e);
-  }
+  const userBookmarks = await db.bookmark.findMany({
+    where: { userId: user.id, itemType: "QUESTION" },
+    select: { itemId: true },
+  });
+  const bookmarkedSet = new Set(userBookmarks.map((b) => b.itemId));
 
   // 1. Gather previously answered questions in this session
-  const answeredQuestionIds = new Set((session.answers || []).map((a: any) => a.questionVersion.questionId));
+  const answeredQuestionIds = new Set(session.answers.map((a) => a.questionVersion.questionId));
 
   const questionsPayload = [];
 
-  for (const ans of (session.answers || [])) {
+  for (const ans of session.answers) {
     const q = ans.questionVersion.question;
     const v = ans.questionVersion;
     questionsPayload.push({
@@ -159,19 +82,15 @@ export default async function PracticeSessionPage({ params }: PracticeSessionPag
   const remainingCount = session.totalQuestions - questionsPayload.length;
 
   if (remainingCount > 0) {
-    let isPremium = false;
-    try {
-      const activeEntitlement = await db.entitlement.findFirst({
-        where: {
-          userId: user.id,
-          isActive: true,
-          validUntil: { gt: new Date() },
-        },
-      });
-      isPremium = !!activeEntitlement;
-    } catch (e) {
-      console.warn("Could not check entitlement:", e);
-    }
+    // Check entitlement for premium
+    const activeEntitlement = await db.entitlement.findFirst({
+      where: {
+        userId: user.id,
+        isActive: true,
+        validUntil: { gt: new Date() },
+      },
+    });
+    const isPremium = !!activeEntitlement;
 
     const whereClause: any = {
       status: "PUBLISHED",
@@ -189,20 +108,15 @@ export default async function PracticeSessionPage({ params }: PracticeSessionPag
       whereClause.difficulty = session.difficultyFilter;
     }
 
-    let unattemptedQuestions: any[] = [];
-    try {
-      unattemptedQuestions = await db.question.findMany({
-        where: whereClause,
-        include: {
-          versions: { orderBy: { versionNumber: "desc" }, take: 1 },
-          topic: true,
-          subject: true,
-        },
-        take: remainingCount,
-      });
-    } catch (e) {
-      console.error("Failed to query unattempted questions:", e);
-    }
+    const unattemptedQuestions = await db.question.findMany({
+      where: whereClause,
+      include: {
+        versions: { orderBy: { versionNumber: "desc" }, take: 1 },
+        topic: true,
+        subject: true,
+      },
+      take: remainingCount,
+    });
 
     for (const q of unattemptedQuestions) {
       const v = q.versions[0];
@@ -218,7 +132,7 @@ export default async function PracticeSessionPage({ params }: PracticeSessionPag
         optionD: v.optionD,
         difficulty: q.difficulty,
         subjectName: q.subject.name,
-        topicName: q.topic?.name || "General",
+        topicName: q.topic.name,
         questionType: q.questionType,
         examYear: q.examYear,
         source: q.source,
@@ -229,17 +143,17 @@ export default async function PracticeSessionPage({ params }: PracticeSessionPag
   }
 
   // Initial index should be the first unattempted question
-  const initialIndex = (session.answers || []).length < questionsPayload.length ? (session.answers || []).length : 0;
+  const initialIndex = session.answers.length < questionsPayload.length ? session.answers.length : 0;
 
   return (
     <PracticeRunner
-      sessionId={sessionId}
+      sessionId={session.id}
       sessionInfo={{
         examTitle: session.exam.title,
         subjectName: session.subject.name,
         topicName: session.topic?.name,
         totalQuestions: session.totalQuestions,
-        completedAnswersCount: (session.answers || []).length,
+        completedAnswersCount: session.answers.length,
       }}
       questions={questionsPayload}
       initialIndex={initialIndex}

@@ -55,16 +55,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Find previously attempted questions to prefer unseen questions
-    let seenIds = new Set<string>();
-    try {
-      const previouslyAttempted = await db.attemptAnswer.findMany({
-        where: { session: { userId: user.id } },
-        select: { questionVersion: { select: { questionId: true } } },
-      });
-      seenIds = new Set(previouslyAttempted.map((a) => a.questionVersion.questionId));
-    } catch (e) {
-      console.warn("Could not query previous attempts:", e);
-    }
+    const previouslyAttempted = await db.attemptAnswer.findMany({
+      where: { session: { userId: user.id } },
+      select: { questionVersion: { select: { questionId: true } } },
+    });
+    const seenIds = new Set(previouslyAttempted.map((a) => a.questionVersion.questionId));
 
     const unseen = eligibleQuestions.filter((q) => !seenIds.has(q.id));
     const seen = eligibleQuestions.filter((q) => seenIds.has(q.id));
@@ -72,40 +67,20 @@ export async function POST(req: NextRequest) {
     // Combine preferring unseen first, no duplicates
     const selectedPool = [...unseen, ...seen].slice(0, count);
 
-    // Attempt to persist practice session into DB
-    let createdSessionId = `sess_${Date.now()}`;
-    try {
-      const session = await db.practiceSession.create({
-        data: {
-          userId: user.id,
-          examId,
-          subjectId,
-          topicId: topicId && topicId !== "ALL" ? topicId : null,
-          difficultyFilter: difficultyFilter || "ALL",
-          totalQuestions: selectedPool.length,
-          status: "IN_PROGRESS",
-        },
-      });
-      createdSessionId = session.id;
-    } catch (e) {
-      console.warn("Could not persist session to DB:", e);
-    }
+    // Create session
+    const session = await db.practiceSession.create({
+      data: {
+        userId: user.id,
+        examId,
+        subjectId,
+        topicId: topicId && topicId !== "ALL" ? topicId : null,
+        difficultyFilter: difficultyFilter || "ALL",
+        totalQuestions: selectedPool.length,
+        status: "IN_PROGRESS",
+      },
+    });
 
-    // Encode session parameters so any serverless lambda can reconstruct it without 404
-    const tokenPayload = {
-      id: createdSessionId,
-      u: user.id,
-      e: examId,
-      s: subjectId,
-      t: topicId || "ALL",
-      d: difficultyFilter || "ALL",
-      c: selectedPool.length,
-      ts: Date.now(),
-    };
-
-    const encodedSessionId = "sess_" + Buffer.from(JSON.stringify(tokenPayload)).toString("base64url");
-
-    return NextResponse.json({ success: true, sessionId: encodedSessionId });
+    return NextResponse.json({ success: true, sessionId: session.id });
   } catch (error: any) {
     console.error("Practice start error:", error);
     return NextResponse.json({ error: "Failed to create practice session" }, { status: 500 });
