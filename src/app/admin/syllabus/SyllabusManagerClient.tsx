@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -9,7 +9,11 @@ import {
   Edit,
   Trash2,
   FolderTree,
+  ChevronLeft,
   ChevronRight,
+  SlidersHorizontal,
+  LayoutGrid,
+  Search,
   Layers,
   FileText,
   HelpCircle,
@@ -55,6 +59,92 @@ export default function SyllabusManagerClient({ exams }: { exams: ExamSyllabus[]
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Exam Track Slider Controls
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [viewMode, setViewMode] = useState<"slider" | "wrap">("slider");
+
+  // Subject Filter & Search Controls
+  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState("ALL");
+  const [topicSearch, setTopicSearch] = useState("");
+  const subjectSliderRef = useRef<HTMLDivElement>(null);
+  const [canScrollSubLeft, setCanScrollSubLeft] = useState(false);
+  const [canScrollSubRight, setCanScrollSubRight] = useState(false);
+
+  // Check scroll positions
+  const checkScroll = () => {
+    if (sliderRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
+      setCanScrollLeft(scrollLeft > 5);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
+    }
+    if (subjectSliderRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = subjectSliderRef.current;
+      setCanScrollSubLeft(scrollLeft > 5);
+      setCanScrollSubRight(scrollLeft + clientWidth < scrollWidth - 5);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [examsList, activeExamId, viewMode]);
+
+  // Mouse wheel horizontal scrolling on Exam Slider
+  useEffect(() => {
+    const el = sliderRef.current;
+    if (!el || viewMode !== "slider") return;
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+        checkScroll();
+      }
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [viewMode, examsList]);
+
+  // Mouse wheel horizontal scrolling on Subject Slider
+  useEffect(() => {
+    const el = subjectSliderRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+        checkScroll();
+      }
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [activeExamId]);
+
+  const slideExam = (dir: "left" | "right") => {
+    if (sliderRef.current) {
+      const distance = 350;
+      sliderRef.current.scrollBy({
+        left: dir === "left" ? -distance : distance,
+        behavior: "smooth",
+      });
+      setTimeout(checkScroll, 350);
+    }
+  };
+
+  const slideSubject = (dir: "left" | "right") => {
+    if (subjectSliderRef.current) {
+      const distance = 280;
+      subjectSliderRef.current.scrollBy({
+        left: dir === "left" ? -distance : distance,
+        behavior: "smooth",
+      });
+      setTimeout(checkScroll, 350);
+    }
+  };
 
   // Modals
   const [subjectModal, setSubjectModal] = useState<{
@@ -390,26 +480,395 @@ export default function SyllabusManagerClient({ exams }: { exams: ExamSyllabus[]
           className="btn btn-primary btn-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>Add Subject to {activeExam?.title.split(" ")[0]}</span>
+          <span>Add Subject to Course</span>
         </button>
       </div>
 
-      {/* Exam Track Tabs */}
-      <div className="flex gap-2 border-b pb-2 flex-wrap" style={{ borderColor: "var(--color-border)" }}>
-        {exams.map((e) => (
-          <button
-            key={e.id}
-            type="button"
-            onClick={() => setActiveExamId(e.id)}
-            className={`btn btn-sm ${activeExamId === e.id ? "btn-primary" : "btn-secondary"}`}
+      {/* ================= 1. EXAMINATION TRACKS SLIDER ================= */}
+      <div
+        className="card"
+        style={{
+          padding: "1rem 1.25rem",
+          backgroundColor: "#FFFFFF",
+          border: "1px solid #E2E8F0",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        }}
+      >
+        {/* Slider Controls Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "0.75rem",
+            marginBottom: "0.75rem",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{ fontSize: "0.88rem", fontWeight: 800, color: "#0F172A" }}>
+              Examination Tracks
+            </span>
+            <span
+              style={{
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                backgroundColor: "#EFF6FF",
+                color: "#1D4ED8",
+                padding: "2px 8px",
+                borderRadius: "999px",
+              }}
+            >
+              {examsList.length} Tracks
+            </span>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            {/* Jump to exam dropdown */}
+            <select
+              value={activeExamId}
+              onChange={(e) => {
+                setActiveExamId(e.target.value);
+                setSelectedSubjectFilter("ALL");
+                setTopicSearch("");
+              }}
+              className="form-select"
+              style={{ fontSize: "0.8rem", padding: "0.25rem 0.5rem", height: "30px", width: "auto" }}
+            >
+              {examsList.map((ex) => (
+                <option key={ex.id} value={ex.id}>
+                  {ex.title}
+                </option>
+              ))}
+            </select>
+
+            {/* Slider Navigation Arrows */}
+            {viewMode === "slider" && (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                <button
+                  type="button"
+                  onClick={() => slideExam("left")}
+                  disabled={!canScrollLeft}
+                  className="btn btn-ghost btn-sm"
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    padding: 0,
+                    border: "1px solid #E2E8F0",
+                    opacity: canScrollLeft ? 1 : 0.4,
+                    cursor: canScrollLeft ? "pointer" : "default",
+                  }}
+                  title="Scroll Left"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => slideExam("right")}
+                  disabled={!canScrollRight}
+                  className="btn btn-ghost btn-sm"
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    padding: 0,
+                    border: "1px solid #E2E8F0",
+                    opacity: canScrollRight ? 1 : 0.4,
+                    cursor: canScrollRight ? "pointer" : "default",
+                  }}
+                  title="Scroll Right"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* View Mode Switcher: Slide vs Wrap */}
+            <button
+              type="button"
+              onClick={() => setViewMode(viewMode === "slider" ? "wrap" : "slider")}
+              className="btn btn-ghost btn-sm"
+              style={{
+                fontSize: "0.76rem",
+                padding: "0.25rem 0.6rem",
+                height: "30px",
+                border: "1px solid #E2E8F0",
+              }}
+              title={viewMode === "slider" ? "Switch to multi-row view" : "Switch to sliding row"}
+            >
+              {viewMode === "slider" ? (
+                <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                  <LayoutGrid className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Wrap</span>
+                </span>
+              ) : (
+                <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Slide</span>
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* The Track Buttons Slider */}
+        <div style={{ position: "relative", minWidth: 0, width: "100%" }}>
+          {/* Gradient edge masks when sliding */}
+          {viewMode === "slider" && canScrollLeft && (
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: "28px",
+                background: "linear-gradient(to right, rgba(255,255,255,0.95), transparent)",
+                zIndex: 2,
+                pointerEvents: "none",
+              }}
+            />
+          )}
+          {viewMode === "slider" && canScrollRight && (
+            <div
+              style={{
+                position: "absolute",
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: "28px",
+                background: "linear-gradient(to left, rgba(255,255,255,0.95), transparent)",
+                zIndex: 2,
+                pointerEvents: "none",
+              }}
+            />
+          )}
+
+          <div
+            ref={sliderRef}
+            onScroll={checkScroll}
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              overflowX: viewMode === "slider" ? "auto" : "visible",
+              flexWrap: viewMode === "slider" ? "nowrap" : "wrap",
+              scrollBehavior: "smooth",
+              padding: "4px 2px",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              minWidth: 0,
+            }}
           >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>{e.title}</span>
-          </button>
-        ))}
+            {examsList.map((e) => {
+              const isActive = activeExamId === e.id;
+              const subCount = e.syllabi[0]?.subjects?.length || 0;
+
+              return (
+                <button
+                  key={e.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveExamId(e.id);
+                    setSelectedSubjectFilter("ALL");
+                    setTopicSearch("");
+                  }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "0.5rem 0.85rem",
+                    borderRadius: "8px",
+                    fontSize: "0.84rem",
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    transition: "all 150ms ease",
+                    backgroundColor: isActive ? "#0B5ED7" : "#F8FAFC",
+                    color: isActive ? "#FFFFFF" : "#334155",
+                    border: `1.5px solid ${isActive ? "#0B5ED7" : "#CBD5E1"}`,
+                    boxShadow: isActive ? "0 2px 6px rgba(11, 94, 215, 0.3)" : "none",
+                  }}
+                >
+                  <BookOpen className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-sky-600"}`} />
+                  <span>{e.title}</span>
+                  <span
+                    style={{
+                      fontSize: "0.7rem",
+                      padding: "1px 6px",
+                      borderRadius: "999px",
+                      backgroundColor: isActive ? "rgba(255,255,255,0.2)" : "#E2E8F0",
+                      color: isActive ? "#FFFFFF" : "#64748B",
+                    }}
+                  >
+                    {subCount} Subjects
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* Subjects & Topics Tree */}
+      {/* ================= 2. SUBJECTS QUICK SLIDER & SEARCH BAR ================= */}
+      {activeSubjects.length > 0 && (
+        <div
+          className="card"
+          style={{
+            padding: "0.85rem 1.25rem",
+            backgroundColor: "#FFFFFF",
+            border: "1px solid #E2E8F0",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "0.75rem",
+            }}
+          >
+            {/* Subject Pills Slider */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexGrow: 1, minWidth: 0 }}>
+              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#64748B", whiteSpace: "nowrap" }}>
+                Filter Subject:
+              </span>
+
+              {/* Slider Left Arrow */}
+              <button
+                type="button"
+                onClick={() => slideSubject("left")}
+                disabled={!canScrollSubLeft}
+                className="btn btn-ghost btn-sm"
+                style={{
+                  width: "26px",
+                  height: "26px",
+                  padding: 0,
+                  border: "1px solid #E2E8F0",
+                  opacity: canScrollSubLeft ? 1 : 0.4,
+                  cursor: canScrollSubLeft ? "pointer" : "default",
+                  flexShrink: 0,
+                }}
+                title="Scroll Left"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+
+              <div
+                ref={subjectSliderRef}
+                onScroll={checkScroll}
+                style={{
+                  display: "flex",
+                  gap: "0.4rem",
+                  overflowX: "auto",
+                  scrollBehavior: "smooth",
+                  scrollbarWidth: "none",
+                  whiteSpace: "nowrap",
+                  flexGrow: 1,
+                  padding: "2px 0",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setSelectedSubjectFilter("ALL")}
+                  style={{
+                    fontSize: "0.78rem",
+                    fontWeight: 700,
+                    padding: "0.3rem 0.75rem",
+                    borderRadius: "999px",
+                    border: `1px solid ${selectedSubjectFilter === "ALL" ? "#0284C7" : "#CBD5E1"}`,
+                    backgroundColor: selectedSubjectFilter === "ALL" ? "#0284C7" : "#FFFFFF",
+                    color: selectedSubjectFilter === "ALL" ? "#FFFFFF" : "#475569",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                >
+                  All Subjects ({activeSubjects.length})
+                </button>
+
+                {activeSubjects.map((sub) => {
+                  const isSel = selectedSubjectFilter === sub.id;
+                  return (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      onClick={() => setSelectedSubjectFilter(sub.id)}
+                      style={{
+                        fontSize: "0.78rem",
+                        fontWeight: 600,
+                        padding: "0.3rem 0.75rem",
+                        borderRadius: "999px",
+                        border: `1px solid ${isSel ? "#0284C7" : "#CBD5E1"}`,
+                        backgroundColor: isSel ? "#0284C7" : "#FFFFFF",
+                        color: isSel ? "#FFFFFF" : "#475569",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {sub.name} ({sub.topics.length})
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Slider Right Arrow */}
+              <button
+                type="button"
+                onClick={() => slideSubject("right")}
+                disabled={!canScrollSubRight}
+                className="btn btn-ghost btn-sm"
+                style={{
+                  width: "26px",
+                  height: "26px",
+                  padding: 0,
+                  border: "1px solid #E2E8F0",
+                  opacity: canScrollSubRight ? 1 : 0.4,
+                  cursor: canScrollSubRight ? "pointer" : "default",
+                  flexShrink: 0,
+                }}
+                title="Scroll Right"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Quick Search */}
+            <div style={{ position: "relative", minWidth: "220px" }}>
+              <input
+                type="text"
+                placeholder="Search subject or topic..."
+                value={topicSearch}
+                onChange={(e) => setTopicSearch(e.target.value)}
+                className="form-input"
+                style={{ fontSize: "0.8rem", padding: "0.3rem 0.6rem 0.3rem 2rem", height: "32px", width: "100%" }}
+              />
+              <Search
+                className="w-3.5 h-3.5 text-muted"
+                style={{ position: "absolute", left: "0.6rem", top: "50%", transform: "translateY(-50%)" }}
+              />
+              {topicSearch && (
+                <button
+                  type="button"
+                  onClick={() => setTopicSearch("")}
+                  style={{
+                    position: "absolute",
+                    right: "0.5rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#94A3B8",
+                  }}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= 3. SUBJECTS & TOPICS TREE ================= */}
       <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
         {activeSubjects.length === 0 ? (
           <div className="card text-center py-12 text-muted">
@@ -431,7 +890,22 @@ export default function SyllabusManagerClient({ exams }: { exams: ExamSyllabus[]
             </button>
           </div>
         ) : (
-          activeSubjects.map((sub) => (
+          activeSubjects
+            .filter((sub) => {
+              if (selectedSubjectFilter !== "ALL" && sub.id !== selectedSubjectFilter) {
+                return false;
+              }
+              if (topicSearch.trim()) {
+                const q = topicSearch.toLowerCase().trim();
+                const matchSub = sub.name.toLowerCase().includes(q) || sub.code.toLowerCase().includes(q);
+                const matchTopic = sub.topics.some(
+                  (t) => t.name.toLowerCase().includes(q) || t.code.toLowerCase().includes(q)
+                );
+                if (!matchSub && !matchTopic) return false;
+              }
+              return true;
+            })
+            .map((sub) => (
             <div
               key={sub.id}
               className="card"
