@@ -40,6 +40,8 @@ export default async function EditQuestionPage({ params }: EditQuestionPageProps
   const latestVersion = question.versions[0];
 
   const initialData = {
+    id: question.id,
+    questionId: question.id,
     examIds: question.questionExams.map((qe) => qe.examId),
     subjectId: question.subjectId,
     topicId: question.topicId,

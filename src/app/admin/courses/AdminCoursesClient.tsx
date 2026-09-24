@@ -56,6 +56,7 @@ export default function AdminCoursesClient({
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("ALL");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [courseToEdit, setCourseToEdit] = useState<FormattedCourse | null>(null);
   const [successMsg, setSuccessMsg] = useState("");
 
   const filteredCourses = courses.filter((c) => {
@@ -142,7 +143,10 @@ export default function AdminCoursesClient({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setCourseToEdit(null);
+              setIsModalOpen(true);
+            }}
             className="btn btn-primary btn-sm"
           >
             <Plus className="w-4 h-4" />
@@ -322,6 +326,19 @@ export default function AdminCoursesClient({
                   </td>
                   <td style={{ textAlign: "right" }}>
                     <div className="flex justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCourseToEdit(c);
+                          setIsModalOpen(true);
+                        }}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: "0.25rem 0.5rem", height: "30px" }}
+                        title="Edit Course Details"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span>Edit</span>
+                      </button>
                       <Link
                         href={`/admin/syllabus`}
                         className="btn btn-secondary btn-sm"
@@ -352,9 +369,13 @@ export default function AdminCoursesClient({
       {/* Course Editor Modal */}
       <CourseEditorModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        initialCourse={courseToEdit}
+        onClose={() => {
+          setIsModalOpen(false);
+          setCourseToEdit(null);
+        }}
         onCourseSaved={(savedCourse) => {
-          setSuccessMsg(`Course "${savedCourse.name}" created / updated successfully!`);
+          setSuccessMsg(`Course "${savedCourse.name}" saved successfully!`);
           router.refresh();
         }}
       />

@@ -50,6 +50,7 @@ interface ExamSyllabus {
 export default function SyllabusManagerClient({ exams }: { exams: ExamSyllabus[] }) {
   const router = useRouter();
 
+  const [examsList, setExamsList] = useState<ExamSyllabus[]>(exams);
   const [activeExamId, setActiveExamId] = useState<string>(exams[0]?.id || "");
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -88,7 +89,7 @@ export default function SyllabusManagerClient({ exams }: { exams: ExamSyllabus[]
     estimatedMinutes: 30,
   });
 
-  const activeExam = exams.find((e) => e.id === activeExamId) || exams[0];
+  const activeExam = examsList.find((e) => e.id === activeExamId) || examsList[0];
   const activeSyllabus = activeExam?.syllabi[0];
   const activeSubjects = activeSyllabus?.subjects || [];
 
@@ -131,6 +132,48 @@ export default function SyllabusManagerClient({ exams }: { exams: ExamSyllabus[]
         return;
       }
 
+      if (subjectModal.isEditing) {
+        setExamsList((prev) =>
+          prev.map((ex) => {
+            if (ex.id !== subjectModal.examId && ex.id !== activeExamId) return ex;
+            return {
+              ...ex,
+              syllabi: ex.syllabi.map((syl) => ({
+                ...syl,
+                subjects: syl.subjects.map((sub) =>
+                  sub.id === subjectModal.subjectId
+                    ? { ...sub, name: subjectModal.name, code: subjectModal.code }
+                    : sub
+                ),
+              })),
+            };
+          })
+        );
+      } else {
+        const newSub: SubjectItem = {
+          id: data.subject?.id || `sub_${Date.now()}`,
+          name: subjectModal.name,
+          code: subjectModal.code || `SUB_${Date.now()}`,
+          order: (activeSubjects.length || 0) + 1,
+          topics: [],
+        };
+        setExamsList((prev) =>
+          prev.map((ex) => {
+            if (ex.id !== subjectModal.examId && ex.id !== activeExamId) return ex;
+            const existingSyllabus = ex.syllabi[0] || { id: "syl_1", versionCode: "2081_GENERAL", subjects: [] };
+            return {
+              ...ex,
+              syllabi: [
+                {
+                  ...existingSyllabus,
+                  subjects: [...(existingSyllabus.subjects || []), newSub],
+                },
+              ],
+            };
+          })
+        );
+      }
+
       setSubjectModal({ isOpen: false, isEditing: false, examId: "", name: "", code: "" });
       setSuccessMsg(subjectModal.isEditing ? "Subject updated successfully!" : "Subject created successfully!");
       router.refresh();
@@ -147,7 +190,19 @@ export default function SyllabusManagerClient({ exams }: { exams: ExamSyllabus[]
     try {
       const res = await fetch(`/api/admin/syllabus?type=SUBJECT&id=${id}`, { method: "DELETE" });
       if (res.ok) {
-        setSuccessMsg("Subject deleted.");
+        setExamsList((prev) =>
+          prev.map((ex) => {
+            if (ex.id !== activeExamId) return ex;
+            return {
+              ...ex,
+              syllabi: ex.syllabi.map((syl) => ({
+                ...syl,
+                subjects: syl.subjects.filter((s) => s.id !== id),
+              })),
+            };
+          })
+        );
+        setSuccessMsg("Subject deleted successfully.");
         router.refresh();
       } else {
         alert("Failed to delete subject.");
@@ -198,6 +253,63 @@ export default function SyllabusManagerClient({ exams }: { exams: ExamSyllabus[]
         return;
       }
 
+      if (topicModal.isEditing) {
+        setExamsList((prev) =>
+          prev.map((ex) => {
+            if (ex.id !== activeExamId) return ex;
+            return {
+              ...ex,
+              syllabi: ex.syllabi.map((syl) => ({
+                ...syl,
+                subjects: syl.subjects.map((sub) => {
+                  if (sub.id !== topicModal.subjectId) return sub;
+                  return {
+                    ...sub,
+                    topics: sub.topics.map((top) =>
+                      top.id === topicModal.topicId
+                        ? {
+                            ...top,
+                            name: topicModal.name,
+                            code: topicModal.code,
+                            estimatedMinutes: topicModal.estimatedMinutes,
+                          }
+                        : top
+                    ),
+                  };
+                }),
+              })),
+            };
+          })
+        );
+      } else {
+        const newTopic: TopicItem = {
+          id: data.topic?.id || `top_${Date.now()}`,
+          name: topicModal.name,
+          code: topicModal.code || `TOP_${Date.now()}`,
+          estimatedMinutes: topicModal.estimatedMinutes || 30,
+          order: 99,
+          _count: { questions: 0, notes: 0 },
+        };
+        setExamsList((prev) =>
+          prev.map((ex) => {
+            if (ex.id !== activeExamId) return ex;
+            return {
+              ...ex,
+              syllabi: ex.syllabi.map((syl) => ({
+                ...syl,
+                subjects: syl.subjects.map((sub) => {
+                  if (sub.id !== topicModal.subjectId) return sub;
+                  return {
+                    ...sub,
+                    topics: [...(sub.topics || []), newTopic],
+                  };
+                }),
+              })),
+            };
+          })
+        );
+      }
+
       setTopicModal({ isOpen: false, isEditing: false, subjectId: "", name: "", code: "", estimatedMinutes: 30 });
       setSuccessMsg(topicModal.isEditing ? "Topic updated successfully!" : "Topic created successfully!");
       router.refresh();
@@ -214,7 +326,22 @@ export default function SyllabusManagerClient({ exams }: { exams: ExamSyllabus[]
     try {
       const res = await fetch(`/api/admin/syllabus?type=TOPIC&id=${id}`, { method: "DELETE" });
       if (res.ok) {
-        setSuccessMsg("Topic deleted.");
+        setExamsList((prev) =>
+          prev.map((ex) => {
+            if (ex.id !== activeExamId) return ex;
+            return {
+              ...ex,
+              syllabi: ex.syllabi.map((syl) => ({
+                ...syl,
+                subjects: syl.subjects.map((sub) => ({
+                  ...sub,
+                  topics: sub.topics.filter((t) => t.id !== id),
+                })),
+              })),
+            };
+          })
+        );
+        setSuccessMsg("Topic deleted successfully.");
         router.refresh();
       } else {
         alert("Failed to delete topic.");

@@ -36,12 +36,14 @@ interface CategoryOption {
 interface CourseEditorModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialCourse?: CourseData | null;
   onCourseSaved?: (savedCourse: { id: string; name: string }) => void;
 }
 
 export default function CourseEditorModal({
   isOpen,
   onClose,
+  initialCourse,
   onCourseSaved,
 }: CourseEditorModalProps) {
   const [activeTab, setActiveTab] = useState<"CREATE" | "LIST">("CREATE");
@@ -84,8 +86,22 @@ export default function CourseEditorModal({
   useEffect(() => {
     if (isOpen) {
       fetchCoursesAndCategories();
+      if (initialCourse) {
+        setEditingId(initialCourse.id);
+        setTitle(initialCourse.title || initialCourse.name || "");
+        setCode(initialCourse.code || "");
+        setDescription(initialCourse.description || "");
+        setCategoryId(initialCourse.categoryId || initialCourse.category?.id || "");
+        setIsCustomCategory(false);
+        setCustomCategoryName("");
+        setIsActive(initialCourse.isActive !== false);
+        setActiveTab("CREATE");
+        setError("");
+      } else {
+        resetForm();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialCourse]);
 
   const resetForm = () => {
     setEditingId(null);

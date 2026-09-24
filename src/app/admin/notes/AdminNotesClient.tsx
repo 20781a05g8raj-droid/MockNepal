@@ -255,6 +255,38 @@ export default function AdminNotesClient({
         return;
       }
 
+      if (editingNote) {
+        const examObj = exams.find((e) => e.id === examId);
+        const subObj = subjects.find((s) => s.id === (isCustomSubject ? "" : subjectId));
+        const topObj = topics.find((t) => t.id === (isCustomTopic ? "" : topicId));
+
+        setNotes((prev) =>
+          prev.map((n) =>
+            n.id === editingNote.id
+              ? {
+                  ...n,
+                  title,
+                  noteType,
+                  pdfUrl: noteType === "PDF" ? pdfUrl : null,
+                  pdfFileName: noteType === "PDF" ? pdfFileName : null,
+                  fileSizeBytes: noteType === "PDF" ? fileSizeBytes : null,
+                  examId,
+                  examTitle: examObj?.title || n.examTitle,
+                  subjectId: isCustomSubject ? "" : subjectId,
+                  subjectName: isCustomSubject ? customSubjectName : (subObj?.name || n.subjectName),
+                  topicId: isCustomTopic ? "" : topicId,
+                  topicName: isCustomTopic ? customTopicName : (topObj?.name || n.topicName),
+                  summary,
+                  contentHtml: noteType === "ARTICLE" ? contentHtml : "",
+                  source,
+                  accessLevel,
+                  status,
+                }
+              : n
+          )
+        );
+      }
+
       setIsCreateModalOpen(false);
       resetForm();
       setSuccessMsg(editingNote ? "Note updated successfully!" : "Note created successfully!");

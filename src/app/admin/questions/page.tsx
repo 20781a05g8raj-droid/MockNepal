@@ -15,6 +15,11 @@ export default async function AdminQuestionsPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  const exams = await db.exam.findMany({
+    where: { isActive: true },
+    select: { id: true, title: true },
+    orderBy: { order: "asc" },
+  });
   const subjects = await db.subject.findMany({ orderBy: { order: "asc" } });
   const topics = await db.topic.findMany({ orderBy: { order: "asc" } });
 
@@ -24,12 +29,21 @@ export default async function AdminQuestionsPage() {
       id: q.id,
       externalId: q.externalId,
       questionText: latestVersion?.questionText || "Draft Question",
+      optionA: latestVersion?.optionA || "",
+      optionB: latestVersion?.optionB || "",
+      optionC: latestVersion?.optionC || "",
+      optionD: latestVersion?.optionD || "",
+      correctOption: latestVersion?.correctOption || "A",
+      explanation: latestVersion?.explanation || "",
       difficulty: q.difficulty,
       language: q.language || "NEPALI",
       questionType: q.questionType,
       status: q.status,
+      subjectId: q.subjectId,
       subjectName: q.subject.name,
+      topicId: q.topicId,
       topicName: q.topic.name,
+      examIds: q.questionExams.map((qe) => qe.examId),
       examTitles: q.questionExams.map((qe) => qe.exam.title),
       versionCount: q.versions.length,
     };
@@ -60,6 +74,7 @@ export default async function AdminQuestionsPage() {
       <Suspense fallback={<div className="text-center py-6 text-sm text-muted">Loading question bank...</div>}>
         <QuestionTableClient
           questions={formattedQuestions}
+          exams={exams.map((e) => ({ id: e.id, title: e.title }))}
           subjects={subjects.map((s) => ({ id: s.id, name: s.name }))}
           topics={topics.map((t) => ({ id: t.id, name: t.name, subjectId: t.subjectId }))}
         />
