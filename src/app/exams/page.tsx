@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
+import AuthPromptModal from "@/components/AuthPromptModal";
 import { BookOpen, Layers, CheckCircle2, ChevronRight, FileText } from "lucide-react";
 
 export default async function ExamsCatalogPage() {
@@ -37,6 +38,7 @@ export default async function ExamsCatalogPage() {
   return (
     <div className="public-layout">
       <PublicNav user={user} />
+      <AuthPromptModal user={user} />
 
       <main style={{ padding: "3rem 1.5rem", backgroundColor: "var(--color-bg)", flexGrow: 1 }}>
         <div className="container">

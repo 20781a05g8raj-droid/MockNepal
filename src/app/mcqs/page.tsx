@@ -5,6 +5,7 @@ import { getSessionUser } from "@/lib/auth";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
 import ExamvedaQuestionCard, { ExamvedaQuestionData } from "@/components/ExamvedaQuestionCard";
+import AuthPromptModal from "@/components/AuthPromptModal";
 import {
   BookOpen,
   Filter,
@@ -261,6 +262,7 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
     return (
       <div className="public-layout">
         <PublicNav user={user} />
+        <AuthPromptModal user={user} />
 
         <main style={{ backgroundColor: "#F8FAFC", flexGrow: 1 }}>
           {/* ================= 1. MODERN SLEEK SUBJECT HERO BANNER ================= */}
@@ -934,6 +936,7 @@ export default async function McqsBrowsePage({ searchParams }: McqsPageProps) {
   return (
     <div className="public-layout">
       <PublicNav user={user} />
+      <AuthPromptModal user={user} />
 
       <main style={{ backgroundColor: "#F8FAFC", flexGrow: 1, padding: "2.5rem 1.25rem 4rem" }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto" }}>

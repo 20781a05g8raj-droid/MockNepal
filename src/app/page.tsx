@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { getSessionUser } from "@/lib/auth";
+import { db } from "@/lib/db";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
+import AuthPromptModal from "@/components/AuthPromptModal";
 import {
   Search,
   CheckCircle2,
@@ -68,6 +70,15 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const user = await getSessionUser();
+
+  let targetExamTitle: string | null = null;
+  if (user?.id) {
+    const profile = await db.studentProfile.findUnique({
+      where: { userId: user.id },
+      include: { targetExam: true },
+    });
+    targetExamTitle = profile?.targetExam?.title || null;
+  }
 
   // 1. Practice MCQs For Competitive Exams
   const generalSubjects = [
@@ -160,6 +171,53 @@ export default async function HomePage() {
   return (
     <div className="ev-page-wrapper">
       <PublicNav user={user} />
+      <AuthPromptModal user={user} />
+
+      {/* Persistent Login Status / Welcome Banner */}
+      {user ? (
+        <div style={{ backgroundColor: "#F0FDF4", borderBottom: "1px solid #BBF7D0", padding: "0.65rem 1.25rem" }}>
+          <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.6rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", fontSize: "0.88rem", color: "#166534" }}>
+              <span style={{ fontSize: "1.2rem" }}>👋</span>
+              <span>
+                <strong>नमस्ते, {user.name}!</strong> You are signed in. {targetExamTitle ? `Target: ${targetExamTitle}` : "Your preparation progress is actively saved."}
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <Link
+                href={user.role === "ADMIN" || user.role === "CONTENT_EDITOR" ? "/admin/dashboard" : "/student/dashboard"}
+                style={{ fontSize: "0.82rem", fontWeight: 700, backgroundColor: "#15803D", color: "#FFFFFF", padding: "0.35rem 0.85rem", borderRadius: "6px", textDecoration: "none" }}
+              >
+                Go to Dashboard
+              </Link>
+              <Link
+                href="/student/practice"
+                style={{ fontSize: "0.82rem", fontWeight: 600, backgroundColor: "#FFFFFF", border: "1px solid #86EFAC", color: "#166534", padding: "0.35rem 0.85rem", borderRadius: "6px", textDecoration: "none" }}
+              >
+                Practice Questions
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ backgroundColor: "#EFF6FF", borderBottom: "1px solid #DBEAFE", padding: "0.55rem 1.25rem" }}>
+          <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.84rem", color: "#1E40AF" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ fontSize: "1.1rem" }}>💡</span>
+              <span><strong>New to Mock Nepal?</strong> Sign in or register to track test scores, bookmark questions, and follow syllabus goals.</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <Link href="/login" style={{ fontSize: "0.8rem", fontWeight: 700, color: "#1E40AF", textDecoration: "underline" }}>
+                Sign In
+              </Link>
+              <span>•</span>
+              <Link href="/register" style={{ fontSize: "0.8rem", fontWeight: 700, backgroundColor: "#2563EB", color: "#FFFFFF", padding: "0.25rem 0.65rem", borderRadius: "4px", textDecoration: "none" }}>
+                Create Account
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================= 1. EXAMVEDA HERO BANNER ================= */}
       <section className="ev-hero-section">

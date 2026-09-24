@@ -49,6 +49,10 @@ export default function RegisterForm({ exams }: { exams: ExamOption[] }) {
         return;
       }
 
+      try {
+        localStorage.setItem("mocknepal_logged_in", "true");
+      } catch {}
+
       router.push(data.redirectUrl || "/student/dashboard");
       router.refresh();
     } catch {

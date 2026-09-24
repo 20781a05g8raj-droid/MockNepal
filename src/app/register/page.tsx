@@ -4,7 +4,17 @@ import { db } from "@/lib/db";
 import { BookOpen } from "lucide-react";
 import RegisterForm from "./RegisterForm";
 
+import { getSessionUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+
 export default async function RegisterPage() {
+  const user = await getSessionUser();
+  if (user) {
+    if (user.role === "ADMIN" || user.role === "CONTENT_EDITOR" || user.role === "OWNER") {
+      redirect("/admin/dashboard");
+    }
+    redirect("/student/dashboard");
+  }
   const exams = await db.exam.findMany({
     where: { isActive: true },
     include: { category: true },

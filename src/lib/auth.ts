@@ -52,12 +52,13 @@ export async function setSessionUser(user: { id: string; email: string; name: st
   const cookieStore = await cookies();
   const token = Buffer.from(JSON.stringify({ id: user.id, role: user.role })).toString("base64");
   
+  // Persistent session for 1 year (365 days) so user stays logged in
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.SECURE_COOKIES === "true",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 365, // 365 days
   });
 }
 

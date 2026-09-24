@@ -9,6 +9,7 @@ import {
   Sparkles,
   Layers
 } from "lucide-react";
+import UserAccountNav from "./UserAccountNav";
 
 interface PublicNavProps {
   user?: { name: string; role: string } | null;
@@ -149,82 +150,7 @@ export default function PublicNav({ user }: PublicNavProps) {
             <Search className="w-4 h-4" />
           </Link>
 
-          {user ? (
-            <Link
-              href={
-                user.role === "ADMIN" || user.role === "CONTENT_EDITOR"
-                  ? "/admin/dashboard"
-                  : "/student/dashboard"
-              }
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                padding: "0.35rem 0.85rem",
-                backgroundColor: "#F1F5F9",
-                border: "1px solid #CBD5E1",
-                borderRadius: "999px",
-                color: "#0F172A",
-                textDecoration: "none",
-                fontSize: "0.85rem",
-                fontWeight: 700,
-                whiteSpace: "nowrap",
-              }}
-            >
-              <div
-                style={{
-                  width: "22px",
-                  height: "22px",
-                  borderRadius: "50%",
-                  backgroundColor: "#0284C7",
-                  color: "#FFFFFF",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "0.75rem",
-                }}
-              >
-                <User className="w-3.5 h-3.5" />
-              </div>
-              <span>{user.name.split(" ")[0]}</span>
-            </Link>
-          ) : (
-            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <Link
-                href="/login"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  fontSize: "0.82rem",
-                  fontWeight: 700,
-                  color: "#334155",
-                  textDecoration: "none",
-                  padding: "0.38rem 0.75rem",
-                  borderRadius: "6px",
-                  border: "1px solid #CBD5E1",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <span>Login</span>
-              </Link>
-              <Link
-                href="/register"
-                style={{
-                  fontSize: "0.82rem",
-                  fontWeight: 700,
-                  color: "#FFFFFF",
-                  backgroundColor: "#0B5ED7",
-                  textDecoration: "none",
-                  padding: "0.38rem 0.85rem",
-                  borderRadius: "6px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Register
-              </Link>
-            </div>
-          )}
+          <UserAccountNav user={user} />
         </div>
       </div>
     </header>
