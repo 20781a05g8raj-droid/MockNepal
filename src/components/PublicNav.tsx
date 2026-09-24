@@ -7,7 +7,8 @@ import {
   FileText,
   BookOpen,
   Sparkles,
-  Layers
+  Layers,
+  LayoutDashboard
 } from "lucide-react";
 import UserAccountNav from "./UserAccountNav";
 
@@ -149,6 +150,28 @@ export default function PublicNav({ user }: PublicNavProps) {
           >
             <Search className="w-4 h-4" />
           </Link>
+
+          {user && (
+            <Link
+              href={user.role === "ADMIN" || user.role === "CONTENT_EDITOR" ? "/admin/dashboard" : "/student/dashboard"}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                backgroundColor: "#0B5ED7",
+                color: "#FFFFFF",
+                fontSize: "0.82rem",
+                fontWeight: 700,
+                padding: "0.4rem 0.8rem",
+                borderRadius: "6px",
+                textDecoration: "none",
+                boxShadow: "0 2px 4px rgba(11, 94, 215, 0.2)",
+              }}
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>ड्यासबोर्ड</span>
+            </Link>
+          )}
 
           <UserAccountNav user={user} />
         </div>

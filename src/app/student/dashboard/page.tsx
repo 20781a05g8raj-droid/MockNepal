@@ -21,7 +21,17 @@ import {
   Sparkles,
   Zap,
   Flame,
+  Search,
 } from "lucide-react";
+import {
+  generalSubjects,
+  popularExams,
+  computerSubjects,
+  engineeringSubjects,
+  academicSubjects,
+  currentAffairsList,
+  interviewList,
+} from "@/lib/home-categories";
 
 export default async function StudentDashboardPage() {
   const user = await getSessionUser();
@@ -598,10 +608,251 @@ export default async function StudentDashboardPage() {
         </div>
       </div>
 
-      {/* 3. SECTION B: EXAMVEDA-STYLE SUBJECT RIBBONS & TOPIC/UNIT MCQs (REFERENCE IMAGES 2 & 3) */}
+      {/* ================= SEARCH CARD ================= */}
+      <div className="ev-search-card" style={{ maxWidth: "100%", margin: "0 0 0.5rem 0" }}>
+        <span className="ev-search-label">
+          Search MCQs, Topics & Exams
+        </span>
+        <form action="/mcqs" method="GET" className="ev-search-box">
+          <input
+            type="text"
+            name="q"
+            placeholder="Search any question, subject, topic or examination..."
+            className="ev-search-input"
+          />
+          <button type="submit" className="ev-search-btn">
+            <Search className="w-4 h-4" />
+            <span>Search</span>
+          </button>
+        </form>
+      </div>
+
+      {/* SECTION 1: Practice MCQs For Competitive Exams */}
+      <section className="ev-section">
+        <div className="ev-section-bar">
+          <span>Practice MCQs For Competitive Exams</span>
+        </div>
+        <p className="ev-section-desc">
+          Practice multiple choice questions and answers for competitive exams and entrance tests.
+        </p>
+        <div className="ev-grid-4">
+          {generalSubjects.map((item, idx) => {
+            const IconComponent = item.icon;
+            return (
+              <Link key={idx} href={item.href} className="ev-card">
+                <div className="ev-card-left">
+                  <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                    <IconComponent className="w-5 h-5" />
+                  </div>
+                  <div className="ev-card-text">
+                    <div className="ev-card-title">{item.title}</div>
+                    <div className="ev-card-sub">{item.sub}</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 ev-card-arrow" />
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* SECTION 2: Prepare for Popular Competitive Exams */}
+      <section className="ev-section">
+        <div className="ev-section-bar">
+          <span>Prepare for Popular Competitive Exams</span>
+        </div>
+        <p className="ev-section-desc">
+          Find exam syllabus, preparation resources, subject-wise practice questions and mock tests.
+        </p>
+        <div className="ev-grid-4">
+          {popularExams.map((item, idx) => {
+            const IconComponent = item.icon;
+            return (
+              <Link key={idx} href={item.href} className="ev-card">
+                <div className="ev-card-left">
+                  <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                    <IconComponent className="w-5 h-5" />
+                  </div>
+                  <div className="ev-card-text">
+                    <div className="ev-card-title">{item.title}</div>
+                    <div className="ev-card-sub">{item.sub}</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 ev-card-arrow" />
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Quick Filter Tag Pills */}
+        <div className="ev-tags-row">
+          <Link href="/exams" className="ev-tag-pill">
+            All Exams ▾
+          </Link>
+          <Link href="/mcqs?cat=LOK_SEWA" className="ev-tag-pill">
+            Lok Sewa Exams ▾
+          </Link>
+          <Link href="/mcqs?cat=BANKING" className="ev-tag-pill">
+            Banking Exams ▾
+          </Link>
+          <Link href="/mcqs?cat=ENGINEERING_LICENSE" className="ev-tag-pill">
+            Engineering License ▾
+          </Link>
+          <Link href="/mcqs?cat=TEACHER_SERVICE" className="ev-tag-pill">
+            Teacher Service (TSC) ▾
+          </Link>
+        </div>
+      </section>
+
+      {/* SECTION 3: Dynamic Nepal Curriculum Syllabus Tracks & Subjects */}
       <div>
         <ExamvedaSubjectGrid sections={examvedaSections} />
       </div>
+
+      {/* SECTION 4: Computer & Programming MCQs */}
+      <section className="ev-section">
+        <div className="ev-section-bar">
+          <span>Computer & Programming MCQs</span>
+        </div>
+        <p className="ev-section-desc">
+          Practice computer science & programming solved objective MCQs for competitive exams and interviews.
+        </p>
+        <div className="ev-grid-4">
+          {computerSubjects.map((item, idx) => {
+            const IconComponent = item.icon;
+            return (
+              <Link key={idx} href={item.href} className="ev-card">
+                <div className="ev-card-left">
+                  <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                    <IconComponent className="w-5 h-5" />
+                  </div>
+                  <div className="ev-card-text">
+                    <div className="ev-card-title">{item.title}</div>
+                    <div className="ev-card-sub">{item.sub}</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 ev-card-arrow" />
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* SECTION 5: Engineering & Technical MCQs */}
+      <section className="ev-section">
+        <div className="ev-section-bar">
+          <span>Engineering & Technical MCQs</span>
+        </div>
+        <p className="ev-section-desc">
+          Practice engineering solved MCQs for NEC License, engineering government exams and technical services.
+        </p>
+        <div className="ev-grid-4">
+          {engineeringSubjects.map((item, idx) => {
+            const IconComponent = item.icon;
+            return (
+              <Link key={idx} href={item.href} className="ev-card">
+                <div className="ev-card-left">
+                  <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                    <IconComponent className="w-5 h-5" />
+                  </div>
+                  <div className="ev-card-text">
+                    <div className="ev-card-title">{item.title}</div>
+                    <div className="ev-card-sub">{item.sub}</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 ev-card-arrow" />
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* SECTION 6: Graduate & Academic Subjects */}
+      <section className="ev-section">
+        <div className="ev-section-bar">
+          <span>Graduate & Academic Subjects</span>
+        </div>
+        <p className="ev-section-desc">
+          Practice MCQ questions for graduation programs and higher education subjects.
+        </p>
+        <div className="ev-grid-4">
+          {academicSubjects.map((item, idx) => {
+            const IconComponent = item.icon;
+            return (
+              <Link key={idx} href={item.href} className="ev-card">
+                <div className="ev-card-left">
+                  <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                    <IconComponent className="w-5 h-5" />
+                  </div>
+                  <div className="ev-card-text">
+                    <div className="ev-card-title">{item.title}</div>
+                    <div className="ev-card-sub">{item.sub}</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 ev-card-arrow" />
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* SECTION 7: Latest Current Affairs */}
+      <section className="ev-section">
+        <div className="ev-section-bar">
+          <span>Latest Current Affairs</span>
+        </div>
+        <p className="ev-section-desc">
+          Stay updated with latest daily and monthly current affairs for upcoming examinations.
+        </p>
+        <div className="ev-grid-4">
+          {currentAffairsList.map((item, idx) => {
+            const IconComponent = item.icon;
+            return (
+              <Link key={idx} href={item.href} className="ev-card">
+                <div className="ev-card-left">
+                  <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                    <IconComponent className="w-5 h-5" />
+                  </div>
+                  <div className="ev-card-text">
+                    <div className="ev-card-title">{item.title}</div>
+                    <div className="ev-card-sub">{item.sub}</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 ev-card-arrow" />
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* SECTION 8: Interview Questions & Answers */}
+      <section className="ev-section">
+        <div className="ev-section-bar">
+          <span>Interview Questions & Answers</span>
+        </div>
+        <p className="ev-section-desc">
+          Prepare for HR, banking and technical interviews with frequently asked questions.
+        </p>
+        <div className="ev-grid-4">
+          {interviewList.map((item, idx) => {
+            const IconComponent = item.icon;
+            return (
+              <Link key={idx} href={item.href} className="ev-card">
+                <div className="ev-card-left">
+                  <div className="ev-card-icon" style={{ backgroundColor: item.bg, color: item.color }}>
+                    <IconComponent className="w-5 h-5" />
+                  </div>
+                  <div className="ev-card-text">
+                    <div className="ev-card-title">{item.title}</div>
+                    <div className="ev-card-sub">{item.sub}</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 ev-card-arrow" />
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
       {/* 4. SECTION C: EXAM READINESS & EVALUATION (TEAL, PURPLE & ROSE CARDS) */}
       <div>

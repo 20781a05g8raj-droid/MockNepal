@@ -59,53 +59,57 @@ export default function ExamvedaSubjectGrid({ sections }: ExamvedaSubjectGridPro
         if (!section.subjects || section.subjects.length === 0) return null;
 
         return (
-          <div key={sIdx} style={{ marginBottom: "2.5rem" }}>
-            {/* Examveda-style Section Heading with Teal Underline */}
-            <div className="examveda-section-heading">
+          <div key={sIdx} className="ev-section">
+            {/* Modern Blue Ribbon Section Header matching Image 1 */}
+            <div className="ev-section-bar">
               <span>{section.title}</span>
-              {section.subtitle && (
-                <span
-                  style={{
-                    fontSize: "0.82rem",
-                    fontWeight: 600,
-                    color: "#64748B",
-                  }}
-                >
-                  {section.subtitle}
-                </span>
-              )}
             </div>
+            {section.subtitle && (
+              <p className="ev-section-desc">
+                {section.subtitle}
+              </p>
+            )}
 
-            {/* 2-Column Banner Grid matching Reference Images 2 & 3 */}
-            <div className="examveda-banner-grid">
-              {section.subjects.map((subj) => (
-                <div
-                  key={subj.id}
-                  className="examveda-subject-card"
-                  style={{ backgroundColor: subj.color }}
-                  onClick={() => handleOpenSubject(subj)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      handleOpenSubject(subj);
-                    }
-                  }}
-                  title={`Click to view all units and MCQs for ${subj.name}`}
-                >
-                  <span className="examveda-subject-title">{subj.name}</span>
-
-                  {/* 3D Folded White Paper Badge with (MCQ) Stamp */}
-                  <div className="examveda-paper-badge">
-                    <div
-                      className="examveda-stamp-circle"
-                      style={{ color: subj.color }}
-                    >
-                      (MCQ)
+            {/* 4-Column Modern White Card Grid matching Image 1 */}
+            <div className="ev-grid-4">
+              {section.subjects.map((subj) => {
+                const totalQuestions = subj.units.reduce((acc, u) => acc + (u.questionsCount || 0), 0);
+                return (
+                  <div
+                    key={subj.id}
+                    className="ev-card"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleOpenSubject(subj)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        handleOpenSubject(subj);
+                      }
+                    }}
+                    title={`Click to view units and MCQs for ${subj.name}`}
+                  >
+                    <div className="ev-card-left">
+                      <div
+                        className="ev-card-icon"
+                        style={{
+                          backgroundColor: `${subj.color}15`,
+                          color: subj.color,
+                        }}
+                      >
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                      <div className="ev-card-text">
+                        <div className="ev-card-title">{subj.name}</div>
+                        <div className="ev-card-sub">
+                          {subj.units.length} {subj.units.length === 1 ? "Unit" : "Units"} • {totalQuestions} MCQs
+                        </div>
+                      </div>
                     </div>
+                    <ChevronRight className="w-4 h-4 ev-card-arrow" />
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
